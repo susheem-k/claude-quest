@@ -10,7 +10,11 @@ import {
 } from '../engine/save.js';
 import { gradeMission, sandboxDirFor } from '../engine/gradeMission.js';
 
-const root = process.cwd();
+// Installed as a plugin, save games and sandboxes live in the plugin's
+// persistent data directory (stable regardless of which project the player
+// happens to be in when they play). Running from a manual clone, they live
+// in the repo's own working directory instead.
+const root = process.env.CLAUDE_PLUGIN_DATA || process.cwd();
 const [, , command, ...args] = process.argv;
 const missions = loadMissions();
 

@@ -137,7 +137,10 @@ has to write a commit message for it, graded on subject-line length, imperative 
 
 ## Player experience
 
-The player never leaves the `claude` CLI. `.claude/skills/claude-quest/SKILL.md` makes
+The player never leaves the `claude` CLI. Distributed as an installable plugin
+(`.claude-plugin/plugin.json` + a single-plugin `marketplace.json`, so `/plugin install
+claude-quest@claude-quest` works directly from the GitHub repo), or usable from a manual
+clone without installing anything. Either way, `skills/claude-quest/SKILL.md` makes
 Claude itself the game master: it calls the engine (`src/bin/claude-quest.js`) via Bash
 and narrates the results, but never fabricates mission content or outcomes. This has a
 real architectural consequence, not just a UX one: it's what determines whether a
@@ -158,8 +161,11 @@ mission needs a nested session.
   call against the player's own `claude` CLI (see Tier 4 above).
 
 **Save games:** multiple named characters can exist at once, each with independent
-progress, under `.claude-quest/saves/`. One is "current" at a time
-(`.claude-quest/current.json`). See `src/engine/save.js`.
+progress, under `<root>/.claude-quest/saves/`. One is "current" at a time
+(`.claude-quest/current.json`). `<root>` is `$CLAUDE_PLUGIN_DATA` when installed as a
+plugin (stable across whichever project the player happens to be in), or the working
+directory when run from a manual clone. See `src/engine/save.js` and
+`src/bin/claude-quest.js`.
 
 **Hints:** each mission can declare a `hints` array in `mission.json` (see contract
 below), revealed one at a time on request and tracked per-save so hint usage persists

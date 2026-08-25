@@ -1,0 +1,11 @@
+{
+  "name": "claude-quest",
+  "owner": { "name": "susheem-k" },
+  "plugins": [
+    {
+      "name": "claude-quest",
+      "source": ".",
+      "description": "An in-terminal RPG for learning the Claude Code CLI, zero to hero."
+    }
+  ]
+}
