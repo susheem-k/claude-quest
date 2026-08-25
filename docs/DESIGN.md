@@ -90,6 +90,33 @@ Worked archetypes:
 - True negatives are mandatory alongside true positives, so an overly-broad fix fails as
   loudly as a too-narrow one
 
+## Player experience
+
+The player never leaves the `claude` CLI. `.claude/skills/claude-quest/SKILL.md` makes
+Claude itself the game master: it calls the engine (`src/bin/claude-quest.js`) via Bash
+and narrates the results, but never fabricates mission content or outcomes. This has a
+real architectural consequence, not just a UX one: it's what determines whether a
+mission needs a nested session.
+
+- **Tier 1** missions don't need a nested `claude` session at all — the game-master
+  session can make the requested file edits directly in the sandbox, the same way a
+  player would really use Claude Code day to day.
+- **Tier 2** missions specifically require the player to open their **own**, separate
+  `claude` session rooted at the mission's sandbox — that's the only way to produce a
+  genuine invocation event in that sandbox's hook log, and it's also the actual thing
+  the mission is testing (can the player trigger it themselves).
+- **Tier 3** missions don't need a nested session either — fixing the broken file is a
+  normal edit in the game-master session, and grading itself drives the player's local
+  `claude` CLI (see Tier 3 above).
+
+**Save games:** multiple named characters can exist at once, each with independent
+progress, under `.claude-quest/saves/`. One is "current" at a time
+(`.claude-quest/current.json`). See `src/engine/save.js`.
+
+**Hints:** each mission can declare a `hints` array in `mission.json` (see contract
+below), revealed one at a time on request and tracked per-save so hint usage persists
+across sessions.
+
 ## Roadmap
 
 **In scope for v1** (this repo, current design): Tiers 1–3 as specified above. Every
@@ -120,12 +147,15 @@ Arc outline (content, not yet built):
 Each mission is a directory: `missions/<arc>/<mission-id>/`.
 
 ```
-mission.json   metadata: id, title, arc, tier, order
-goal.md        flavor text + hint shown to the player
-setup.js        (optional) seeds the sandbox: files, hook config, locked resources
+mission.json   metadata: id, title, arc, tier, order, hints[]
+goal.md        flavor text + walkthrough shown to the player
+setup.js       (optional) seeds the sandbox: files, hook config, locked resources
 check.js       Tier 1/2: deterministic check against sandbox state / hook log
 tests.json     Tier 3 only: held-out prompt battery + expected-outcome checks
 ```
+
+`hints` is an ordered array of strings, revealed one at a time (least to most direct)
+on request — see [Player experience](#player-experience).
 
 `setup.js`, `check.js`, and the test-battery runner are the direct analogs of GameShell's
 `static.sh`, `check.sh`, and `test.sh` — same responsibilities, expressed as Node modules

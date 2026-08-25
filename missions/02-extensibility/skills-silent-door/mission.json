@@ -3,5 +3,10 @@
   "title": "The Silent Door",
   "arc": "extensibility",
   "tier": 3,
-  "order": 2
+  "order": 2,
+  "hints": [
+    "Read the skill's current description in .claude/skills/vault-key/SKILL.md — notice it doesn't mention the vault at all.",
+    "A good description says what the skill does AND when to use it — for the vault, and only the vault.",
+    "If your new description is too generic (like the old one), it'll accidentally match the formatting prompts too — that's the second trap."
+  ]
 }

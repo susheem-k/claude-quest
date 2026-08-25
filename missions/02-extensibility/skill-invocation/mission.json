@@ -3,5 +3,10 @@
   "title": "Say the Word",
   "arc": "extensibility",
   "tier": 2,
-  "order": 1
+  "order": 1,
+  "hints": [
+    "There's already a skill sitting in .claude/skills/ — you don't need to write one.",
+    "Skills are invoked with a slash, followed by their name exactly.",
+    "Open a real claude session inside this mission's sandbox directory and try /torch-lighter there."
+  ]
 }

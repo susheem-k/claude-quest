@@ -1,0 +1,77 @@
+import { existsSync, mkdirSync, readFileSync, writeFileSync, readdirSync } from 'node:fs';
+import { join } from 'node:path';
+
+/**
+ * Save games. Multiple named characters can play the same campaign
+ * independently; one of them is "current" at a time. Everything lives under
+ * .claude-quest/ at the campaign root — gitignored, player-local state.
+ */
+
+const STATE_DIR = '.claude-quest';
+const SAVES_DIR = join(STATE_DIR, 'saves');
+const CURRENT_PATH = join(STATE_DIR, 'current.json');
+
+function slugify(name) {
+  const slug = name.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
+  return slug || 'hero';
+}
+
+function savePath(root, slug) {
+  return join(root, SAVES_DIR, `${slug}.json`);
+}
+
+export function listSaves(root) {
+  const dir = join(root, SAVES_DIR);
+  if (!existsSync(dir)) return [];
+  return readdirSync(dir)
+    .filter((f) => f.endsWith('.json'))
+    .map((f) => JSON.parse(readFileSync(join(dir, f), 'utf8')))
+    .sort((a, b) => a.createdAt - b.createdAt);
+}
+
+export function createSave(root, characterName, firstMissionKey) {
+  const slug = slugify(characterName);
+  if (existsSync(savePath(root, slug))) {
+    throw new Error(`A save already exists for "${characterName}". Use "load ${slug}" instead.`);
+  }
+  mkdirSync(join(root, SAVES_DIR), { recursive: true });
+  const save = {
+    slug,
+    name: characterName,
+    createdAt: Date.now(),
+    currentMissionKey: firstMissionKey,
+    completed: [],
+    hintsUsed: {},
+  };
+  writeFileSync(savePath(root, slug), JSON.stringify(save, null, 2));
+  setCurrentSlug(root, slug);
+  return save;
+}
+
+export function loadSave(root, slug) {
+  const path = savePath(root, slug);
+  if (!existsSync(path)) return null;
+  return JSON.parse(readFileSync(path, 'utf8'));
+}
+
+export function writeSave(root, save) {
+  writeFileSync(savePath(root, save.slug), JSON.stringify(save, null, 2));
+}
+
+export function setCurrentSlug(root, slug) {
+  mkdirSync(join(root, STATE_DIR), { recursive: true });
+  writeFileSync(join(root, CURRENT_PATH), JSON.stringify({ slug }, null, 2));
+}
+
+export function getCurrentSlug(root) {
+  const path = join(root, CURRENT_PATH);
+  if (!existsSync(path)) return null;
+  return JSON.parse(readFileSync(path, 'utf8')).slug;
+}
+
+/** The active save, or null if there's no game in progress yet. */
+export function getActiveSave(root) {
+  const slug = getCurrentSlug(root);
+  if (!slug) return null;
+  return loadSave(root, slug);
+}

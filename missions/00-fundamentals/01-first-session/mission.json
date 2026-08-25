@@ -3,5 +3,10 @@
   "title": "First Contact",
   "arc": "fundamentals",
   "tier": 1,
-  "order": 1
+  "order": 1,
+  "hints": [
+    "Claude Code reads a file with a very specific name at the start of every session.",
+    "The file goes in the project root, not a subfolder.",
+    "It needs to literally contain the words \"npm test\" somewhere."
+  ]
 }

@@ -12,18 +12,41 @@ self-report.
 
 Full design rationale is in [`docs/DESIGN.md`](docs/DESIGN.md).
 
+## How to play
+
+The whole game runs inside a real `claude` session — there's no separate app to
+launch. From the repo root:
+
+```
+claude
+```
+
+Then say something like "let's play claude quest" (or type `/claude-quest`). Claude
+takes it from there as game master: it'll ask for a character name on your first
+run, narrate the current mission, and relay real pass/fail results from the engine
+as you play. See [`.claude/skills/claude-quest/SKILL.md`](.claude/skills/claude-quest/SKILL.md)
+for exactly what it's instructed to do.
+
+To play from any directory instead of just this repo, copy (or symlink) the skill
+into your global skills folder: `~/.claude/skills/claude-quest/`.
+
 ## Status
 
-Early scaffolding. The mission contract and grading model are designed and documented;
-the engine (`src/engine`) and most missions are stubs. See
-[Roadmap](docs/DESIGN.md#roadmap) for what's built vs. planned.
+Core loop is playable: character creation, save/resume across multiple characters,
+per-mission hints, sandbox provisioning, and grading for all three tiers. Only 3
+example missions exist so far (one per tier) — see
+[Roadmap](docs/DESIGN.md#roadmap) and the repo's issues for what's next.
 
 ## Quick orientation
 
 - `docs/DESIGN.md` — the actual design doc: mission tiers, grading mechanism, mission
   file contract, anti-flakiness guardrails, arc outline, roadmap.
-- `src/engine/` — the CLI engine that loads missions, runs checks, and drives the
-  test-prompt battery for Tier 3 missions.
+- `.claude/skills/claude-quest/SKILL.md` — the game master. This is what makes the
+  experience live entirely inside the `claude` CLI.
+- `src/engine/` — the engine: loads missions, manages save games, provisions
+  sandboxes, and runs grading (Tier 1/2 `check.js`, Tier 3 test battery).
+- `src/bin/claude-quest.js` — the command surface the skill calls via Bash. Not
+  meant to be run directly by a player.
 - `missions/<arc>/<mission>/` — one directory per mission. See `docs/DESIGN.md` for the
   file contract each mission directory follows.
 
