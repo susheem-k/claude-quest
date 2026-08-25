@@ -2,7 +2,6 @@
   "name": "claude-quest",
   "displayName": "Claude Quest",
   "description": "An in-terminal RPG for learning the Claude Code CLI, zero to hero.",
-  "version": "0.1.0",
   "author": { "name": "susheem-k" },
   "homepage": "https://github.com/susheem-k/claude-quest",
   "repository": "https://github.com/susheem-k/claude-quest",
