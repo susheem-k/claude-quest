@@ -1,0 +1,4 @@
+# Shebang scripts must stay LF-only regardless of the cloning platform's
+# autocrlf setting — a CRLF shebang line breaks execution (`node\r: No such
+# file or directory`), including via Git Bash on Windows.
+bin/* text eol=lf
