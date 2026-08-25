@@ -1,0 +1,21 @@
+{
+  "criteria": [
+    {
+      "id": "concise-subject",
+      "description": "The commit message's subject line (the first line) is 50 characters or fewer."
+    },
+    {
+      "id": "imperative-mood",
+      "description": "The subject line uses imperative mood, e.g. 'Expire idle sessions after 15 minutes', not 'Expired idle sessions' or 'Expires idle sessions'."
+    },
+    {
+      "id": "why-not-what",
+      "description": "If there is a body beneath the subject line, it explains why the change was made (the motivation or problem it fixes), not merely which files or lines changed."
+    },
+    {
+      "id": "no-filler",
+      "description": "The message does not open with throat-clearing filler like 'This commit...' or 'This change...'."
+    }
+  ],
+  "passThreshold": 0.75
+}

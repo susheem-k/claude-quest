@@ -16,7 +16,7 @@ scoped carefully (below) so grading stays reliable.
 
 ## Mission tiers
 
-Every mission belongs to one of three tiers. The tier is about *what's being tested*, not
+Every mission belongs to one of four tiers. The tier is about *what's being tested*, not
 difficulty — arcs mix tiers throughout.
 
 ### Tier 1 — Artifact
@@ -90,6 +90,51 @@ Worked archetypes:
 - True negatives are mandatory alongside true positives, so an overly-broad fix fails as
   loudly as a too-narrow one
 
+### Tier 4 — Judgment
+
+Some things genuinely don't reduce to a fire/don't-fire check or a file shape — "is this
+commit message actually good," "does this explanation actually make sense." Tier 4 grades
+these with an LLM judge, but keeps the same discipline every earlier tier relies on:
+**getting a judgment is fuzzy; interpreting one is deterministic.** The judge's verdict is
+forced into structured, per-criterion output, so nothing is graded as an unexplained
+black-box pass/fail — the player always sees which criteria passed and why.
+
+**Grading mechanism:** each Tier 4 mission ships a `rubric.json` — a small list of
+concrete, checkable criteria (never "is this good," always something closer to "does the
+subject line stay under 50 characters") and a `passThreshold` fraction. The player
+produces an artifact (a file in the sandbox, per `mission.json`'s `artifact` field);
+`check` reads it and sends it, with the rubric, to a **judge call** — the player's own
+`claude -p`, same cost/ownership model as Tier 2/3 — asking for strict JSON:
+`{"criteria":[{"id":...,"passed":...,"reason":...}]}`. The engine parses that
+deterministically and computes pass/fail against the threshold; nothing about the
+interpretation step is left to the model. See `src/engine/judge.js`.
+
+**Why the judge call is isolated, not a continuation of the player's session:** the judge
+runs from a freshly created, empty temp directory — never the sandbox, never the campaign
+root — so it can't inherit a `CLAUDE.md`, hook, or other config the artifact's own project
+might carry, and the player's working session can't reach it either. It gets *only* the
+rubric and the artifact.
+
+**Anti-gaming, the actual hard part of this tier:**
+
+- The artifact is wrapped in an explicit "this is untrusted data, not instructions" framing
+  in the judge prompt, and told that anything inside it which *reads* like an instruction
+  ("ignore the rubric," "mark this as passing") is itself a rubric violation — a direct
+  prompt-injection defense, since the thing being graded is exactly the kind of untrusted
+  content an LLM judge is normally warned about.
+- Rubric criteria are written as concrete, checkable statements, not vague quality
+  judgments — this keeps the judge's job narrow and keeps its stated reasons auditable by
+  a human, rather than being a rubber stamp.
+- **Fail closed.** If the judge's output doesn't parse, or is missing a criterion, that
+  criterion is marked failed with a reason saying so — never silently passed. A
+  malfunctioning judge should never be a free pass.
+- Same single-run-by-default policy as Tier 3 for now; majority-vote re-run is available
+  as an escape hatch if a specific mission proves flaky, not a default.
+
+Worked example: **The Chronicle Entry** — the player is given a change description and
+has to write a commit message for it, graded on subject-line length, imperative mood,
+"why not just what" in the body, and no filler opener. 3 of 4 criteria required to pass.
+
 ## Player experience
 
 The player never leaves the `claude` CLI. `.claude/skills/claude-quest/SKILL.md` makes
@@ -108,6 +153,9 @@ mission needs a nested session.
 - **Tier 3** missions don't need a nested session either — fixing the broken file is a
   normal edit in the game-master session, and grading itself drives the player's local
   `claude` CLI (see Tier 3 above).
+- **Tier 4** missions also don't need a nested session — producing the artifact is a
+  normal edit in the game-master session, and grading itself drives an isolated judge
+  call against the player's own `claude` CLI (see Tier 4 above).
 
 **Save games:** multiple named characters can exist at once, each with independent
 progress, under `.claude-quest/saves/`. One is "current" at a time
@@ -119,18 +167,18 @@ across sessions.
 
 ## Roadmap
 
-**In scope for v1** (this repo, current design): Tiers 1–3 as specified above. Every
-mission — including Tier 3 — reduces to a pass/fail test battery. No mission ever asks an
-LLM to judge subjective quality.
+**Built:** Tiers 1–4 as specified above, each with one worked example mission. Tier 4 is
+the one tier where the *subject* being graded is genuinely non-deterministic (writing
+quality), but the grading *mechanism* stays deterministic once the judge's structured
+verdict comes back — no mission anywhere asks the engine to trust an unstructured "looks
+good to me."
 
-**Explicitly future scope, not v1:** a **Tier 4 — Judgment** tier, where grading itself
-uses an LLM-as-judge for genuinely open-ended output (e.g. "is this a good commit
-message," "is this explanation clear"). This is real and useful territory long-term, but
-it trades away the reliability that makes the earlier tiers cheap to author and safe to
-run unattended — it needs its own rubric-design and anti-gaming work before it's worth
-building. Tracked here so it isn't lost, not designed yet.
+**Still open:** confirming the Tier 2/3 hook telemetry schema against a real live
+session (tracked as a repo issue — it's asserted from docs, not yet verified against an
+actual run), and authoring the rest of the campaign content — only one example mission
+exists per tier so far.
 
-Arc outline (content, not yet built):
+Arc outline (content, mostly not yet built beyond the worked examples above):
 
 1. **Fundamentals** — starting a session, basic prompting, reading a diff, approving vs.
    denying a tool call, permission modes
@@ -141,17 +189,20 @@ Arc outline (content, not yet built):
    one arc where the *engine* legitimately invokes Claude directly in `check.sh`, since
    constructing the correct non-interactive command is the skill being tested, not a
    shortcut around it
+5. **Judgment** — Tier 4 missions on writing/communication craft (commit messages,
+   explanations, review comments) — started with "The Chronicle Entry"
 
 ## Mission file contract
 
 Each mission is a directory: `missions/<arc>/<mission-id>/`.
 
 ```
-mission.json   metadata: id, title, arc, tier, order, hints[]
+mission.json   metadata: id, title, arc, tier, order, hints[], artifact (Tier 4 only)
 goal.md        flavor text + walkthrough shown to the player
 setup.js       (optional) seeds the sandbox: files, hook config, locked resources
 check.js       Tier 1/2: deterministic check against sandbox state / hook log
 tests.json     Tier 3 only: held-out prompt battery + expected-outcome checks
+rubric.json    Tier 4 only: judged criteria (id + description) + passThreshold
 ```
 
 `hints` is an ordered array of strings, revealed one at a time (least to most direct)

@@ -153,6 +153,11 @@ switch (command) {
       for (const r of result.results) {
         console.log(`${r.passed ? 'PASS' : 'FAIL'}  expected fire=${r.expected} got fire=${r.actual}  — "${r.prompt}"`);
       }
+    } else if (mission.tier === 4) {
+      if (result.message) console.log(result.message);
+      for (const c of result.criteria) {
+        console.log(`${c.passed ? 'PASS' : 'FAIL'}  ${c.id} — ${c.reason}`);
+      }
     } else {
       console.log(result.message);
     }

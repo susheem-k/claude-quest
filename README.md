@@ -33,9 +33,9 @@ into your global skills folder: `~/.claude/skills/claude-quest/`.
 ## Status
 
 Core loop is playable: character creation, save/resume across multiple characters,
-per-mission hints, sandbox provisioning, and grading for all three tiers. Only 3
-example missions exist so far (one per tier) — see
-[Roadmap](docs/DESIGN.md#roadmap) and the repo's issues for what's next.
+per-mission hints, sandbox provisioning, and grading for all four tiers — including
+Tier 4's rubric-graded judge calls. Only 4 example missions exist so far (one per
+tier) — see [Roadmap](docs/DESIGN.md#roadmap) and the repo's issues for what's next.
 
 ## Quick orientation
 

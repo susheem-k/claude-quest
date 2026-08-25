@@ -48,6 +48,10 @@ Map what the player says to engine commands; don't guess at outcomes yourself.
     a "fix the skill description" mission, edit the file in the sandbox yourself at
     their direction. Then run `check` — it runs the held-out test battery itself
     against their own `claude` CLI; no separate session needed from the player.
+  - **Tier 4** (judgment): also fine to write the artifact directly here, same as
+    Tier 1/3 — e.g. drafting a commit message into the sandbox. `check` sends it to
+    an isolated judge call and reports per-criterion pass/fail with reasons; relay
+    those reasons to the player exactly, don't paraphrase away the specifics.
 
 ## Tone
 

@@ -2,6 +2,7 @@ import { readFileSync, existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { readHookLog } from './hookLog.js';
+import { resolveClaudeCommand } from './claudeCli.js';
 
 /**
  * Runs a Tier 3 mission's held-out prompt battery (docs/DESIGN.md#tier-3
@@ -25,11 +26,8 @@ export function runTestBattery(mission, { sandboxDir, hookLogPath }) {
   return tests.map((test) => {
     const before = readHookLog(hookLogPath).length;
 
-    // TODO: replace with the real invocation once sandbox provisioning
-    // (setup.js execution, .claude/settings.json seeding) is implemented.
-    // This is the actual mechanism: the player's own `claude` CLI, headless,
-    // run against the mission sandbox, spending the player's own usage.
-    spawnSync('claude', ['-p', test.prompt], { cwd: sandboxDir, encoding: 'utf8' });
+    const { bin, prefixArgs } = resolveClaudeCommand();
+    spawnSync(bin, [...prefixArgs, '-p', test.prompt], { cwd: sandboxDir, encoding: 'utf8' });
 
     const after = readHookLog(hookLogPath);
     const newEvents = after.slice(before);
