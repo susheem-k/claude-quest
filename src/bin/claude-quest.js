@@ -8,7 +8,7 @@ import {
   setCurrentSlug,
   getActiveSave,
 } from '../engine/save.js';
-import { gradeMission, sandboxDirFor } from '../engine/gradeMission.js';
+import { gradeMission, provision } from '../engine/gradeMission.js';
 
 // Installed as a plugin, save games and sandboxes live in the plugin's
 // persistent data directory (stable regardless of which project the player
@@ -141,7 +141,10 @@ switch (command) {
     if (!save) break;
     const mission = currentMission(save);
     if (!mission) break;
-    console.log(sandboxDirFor(root, mission));
+    // Provisions (runs setup.js) if this is the first time — the whole
+    // point of this command is to hand back a directory that's actually
+    // ready to work in, not just a path that will exist eventually.
+    console.log(await provision(root, mission));
     break;
   }
 

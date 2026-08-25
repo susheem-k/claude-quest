@@ -48,4 +48,4 @@ export async function gradeMission(root, mission) {
   return { passed, sandboxDir, message };
 }
 
-export { sandboxDirFor };
+export { sandboxDirFor, provision };
