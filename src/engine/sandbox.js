@@ -4,75 +4,49 @@ import { join } from 'node:path';
 /**
  * Shared sandbox-seeding helpers used by mission setup.js files. Both Tier 2
  * (docs/DESIGN.md#tier-2--invocation) and Tier 3
- * (docs/DESIGN.md#tier-3--mastery) missions need the same hook-logging
- * scaffolding; only what's inside the skill differs.
+ * (docs/DESIGN.md#tier-3--mastery) missions need a skill that reliably
+ * signals its own invocation to a separate grading process.
+ *
+ * This used to be a Claude Code PostToolUse hook matched on a "Skill" tool.
+ * Confirmed live against a real session that this never fires — skill
+ * invocation apparently doesn't go through the standard tool-call hook
+ * pipeline the way Bash/Edit/Write do (and after two rounds of doc research
+ * turning up confident-sounding but contradictory/unverifiable claims about
+ * which hook event *does* cover it, that channel wasn't reliable enough to
+ * build on for a third try).
+ *
+ * Instead: the skill logs its own invocation as one of its own instructed
+ * steps, via the Bash tool — the same trust model Tier 1 missions already
+ * rely on (a real, independently-checkable file write), just triggered by
+ * the skill's own body rather than harness-level hook infrastructure. This
+ * works identically whether the skill was invoked explicitly (/name) or
+ * autonomously (Claude picking it up from its description) — either way,
+ * the skill's body runs, so the log line gets written.
  */
-
-/** Writes .claude/skills/<name>/SKILL.md. */
-export function writeSkill(sandboxDir, { name, description, body }) {
-  const dir = join(sandboxDir, '.claude', 'skills', name);
-  mkdirSync(dir, { recursive: true });
-  writeFileSync(
-    join(dir, 'SKILL.md'),
-    `---\nname: ${name}\ndescription: ${description}\n---\n\n${body}\n`
-  );
-}
 
 /**
- * Installs the PostToolUse hook + logger script that Tier 2/3 grading reads
- * via src/engine/hookLog.js. Idempotent per-sandbox; call once in setup.js.
- *
- * NOTE: the stdin JSON field names (tool_name, tool_input) are asserted from
- * the hooks docs but not yet verified against a live `claude` run — treat
- * log-hook.js as a first draft.
+ * Writes .claude/skills/<name>/SKILL.md. `action` is the mission-specific
+ * behavior (e.g. "Say the torch is lit."); the invocation-logging step is
+ * appended automatically so every mission gets it the same way.
  */
-export function seedHookLogging(sandboxDir, { matcher = 'Skill' } = {}) {
-  const questDir = join(sandboxDir, '.claude-quest');
-  mkdirSync(questDir, { recursive: true });
+export function writeSkill(sandboxDir, { name, description, action }) {
+  const dir = join(sandboxDir, '.claude', 'skills', name);
+  mkdirSync(dir, { recursive: true });
+  // The skill's own logging step appends here — the directory has to exist
+  // up front, since a plain shell redirect won't create it.
+  mkdirSync(join(sandboxDir, '.claude-quest'), { recursive: true });
 
-  const logPath = join(questDir, 'hook.log').replace(/\\/g, '\\\\');
-  writeFileSync(
-    join(questDir, 'log-hook.js'),
-    `#!/usr/bin/env node
-import { appendFileSync } from 'node:fs';
+  const logLine = `printf '{"tool":"Skill","name":"${name}","timestamp":%s}\\n' "$(date +%s%3N)" >> .claude-quest/hook.log`;
+  const body = `${action}
 
-let input = '';
-process.stdin.on('data', (chunk) => { input += chunk; });
-process.stdin.on('end', () => {
-  let event;
-  try {
-    event = JSON.parse(input);
-  } catch {
-    process.exit(0);
-  }
-  const line = JSON.stringify({
-    tool: event.tool_name,
-    name: event.tool_input?.name ?? event.tool_input?.skill,
-    timestamp: Date.now(),
-  });
-  appendFileSync('${logPath}', line + '\\n');
-});
-`
-  );
+Then, using the Bash tool, run this exact command with no explanation and no other output:
 
-  mkdirSync(join(sandboxDir, '.claude'), { recursive: true });
-  writeFileSync(
-    join(sandboxDir, '.claude', 'settings.json'),
-    JSON.stringify(
-      {
-        hooks: {
-          PostToolUse: [
-            {
-              matcher,
-              hooks: [{ type: 'command', command: 'node .claude-quest/log-hook.js' }],
-            },
-          ],
-        },
-      },
-      null,
-      2
-    )
-  );
+\`\`\`
+${logLine}
+\`\`\`
+`;
+
+  writeFileSync(join(dir, 'SKILL.md'), `---\nname: ${name}\ndescription: ${description}\n---\n\n${body}`);
 }
 
 export function hookLogPath(sandboxDir) {

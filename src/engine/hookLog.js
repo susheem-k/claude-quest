@@ -1,13 +1,13 @@
 import { readFileSync, existsSync } from 'node:fs';
 
 /**
- * Tier 2/3 missions seed their sandbox with a PostToolUse hook (see
- * docs/DESIGN.md#tier-2--invocation) that appends one JSON line per matched
- * tool call to this log. The engine never inspects model output directly —
- * only this telemetry.
+ * Tier 2/3 missions seed their sandbox with a skill whose own body logs its
+ * invocation here as one of its instructed steps (see src/engine/sandbox.js
+ * and docs/DESIGN.md#tier-2--invocation). The engine never inspects model
+ * conversational output directly — only this file, a real independently
+ * checkable side effect.
  *
- * Expected line shape (written by the hook script the mission's setup.js
- * installs into the sandbox's .claude/settings.json):
+ * Expected line shape:
  *   { "tool": "Skill", "name": "my-skill", "timestamp": 1234567890 }
  */
 export function readHookLog(logPath) {

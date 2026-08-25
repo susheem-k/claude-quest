@@ -18,8 +18,7 @@ Open a real `claude` session in this sandbox and explicitly invoke the skill:
 
 ## Check
 
-The sandbox's `.claude/settings.json` is pre-seeded (see `setup.js`) with a
-`PostToolUse` hook matched on the `Skill` tool. Every time a skill fires, the hook
-appends one line to `.claude-quest/hook.log`. `check.js` passes when that log shows
-`torch-lighter` was invoked — proof the invocation actually happened, independent of
+`torch-lighter`'s own instructions include a step that logs its invocation to
+`.claude-quest/hook.log` as one of its steps. `check.js` passes when that log shows
+`torch-lighter` fired — proof the invocation actually happened, independent of
 anything Claude said in the session.

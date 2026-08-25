@@ -35,16 +35,21 @@ correctly? This needs one real `claude` session, but grading never depends on ju
 model's output quality.
 
 **Grading mechanism:** the mission sandbox is pre-seeded (as part of its `setup` step)
-with a `PostToolUse` hook matched on the relevant tool (`Skill`, `Task`, etc.) that
-appends a line to a log file every time it fires, including which skill/subagent name
-was invoked. The player opens their own `claude` session in the sandbox and does the
-mission; the engine's `check` step just reads that log — same pattern as GameShell's
-`check.sh` reading `pwd`, pointed at hook output instead.
+with a skill whose own body includes, as one of its instructed steps, appending a line
+to a log file — via the Bash tool, the same trust model Tier 1 already relies on (a
+real, independently-checkable file write). The player opens their own `claude` session
+in the sandbox and does the mission; the engine's `check` step just reads that log —
+same pattern as GameShell's `check.sh` reading `pwd`, pointed at this log instead.
+
+(This used to be a Claude Code `PostToolUse` hook matched on a `Skill` tool. Confirmed
+live against a real session that it never fires — skill invocation doesn't go through
+the standard tool-call hook pipeline the way Bash/Edit/Write do. Switched to the
+self-logging-skill approach above after that; see `src/engine/sandbox.js`.)
 
 This also lets a mission test *how* something was invoked: an early mission can require
-explicit invocation (`/skill-name` in the log); a later mission can require the skill
-fired *without* being named, proving the player's `description` frontmatter was written
-well enough for Claude to pick it up on its own.
+explicit invocation (the player typing `/skill-name` themselves); a later mission can
+rely on the same logging step firing when Claude picks up the skill on its own, proving
+the player's `description` frontmatter was written well enough to trigger it unprompted.
 
 Cost/ownership note: the player runs their **own** `claude` session with their **own**
 account. The engine only watches the hook log — it never spends API calls on the
