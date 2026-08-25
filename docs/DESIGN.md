@@ -161,11 +161,18 @@ mission needs a nested session.
   call against the player's own `claude` CLI (see Tier 4 above).
 
 **Save games:** multiple named characters can exist at once, each with independent
-progress, under `<root>/.claude-quest/saves/`. One is "current" at a time
-(`.claude-quest/current.json`). `<root>` is `$CLAUDE_PLUGIN_DATA` when installed as a
-plugin (stable across whichever project the player happens to be in), or the working
-directory when run from a manual clone. See `src/engine/save.js` and
-`src/bin/claude-quest.js`.
+progress, under `~/.claude-quest/saves/` — the player's home directory, so progress is
+stable no matter which project they're in or whether this is running as an installed
+plugin or a manual clone. One save is "current" at a time (`~/.claude-quest/current.json`).
+See `src/engine/save.js` and `src/bin/claude-quest.js`.
+
+(An earlier version tried to key this off Claude Code plugin env vars —
+`$CLAUDE_PLUGIN_DATA` / `$CLAUDE_PLUGIN_ROOT`. Verified against a real installed-plugin
+session that neither exists; dropped in favor of the home directory, which needs no
+Claude-Code-specific assumption at all. What *is* real and verified: Claude Code adds an
+installed plugin's `bin/` directory to `PATH`, which is how `bin/claude-quest` — a thin
+launcher delegating to `src/bin/claude-quest.js` — gets found as a bare `claude-quest`
+command.)
 
 **Hints:** each mission can declare a `hints` array in `mission.json` (see contract
 below), revealed one at a time on request and tracked per-save so hint usage persists

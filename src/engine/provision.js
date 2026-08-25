@@ -2,7 +2,9 @@ import { existsSync, mkdirSync } from 'node:fs';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
-const RUNS_DIR = join('.claude-quest', 'runs');
+// `root` is already the dedicated state directory (~/.claude-quest) — see
+// src/bin/claude-quest.js — so this is relative to it directly.
+const RUNS_DIR = 'runs';
 
 export function sandboxDirFor(root, mission) {
   return join(root, RUNS_DIR, mission.key);

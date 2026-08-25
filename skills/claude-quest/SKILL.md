@@ -8,10 +8,10 @@ conversation — there is no separate app the player runs. You narrate, you call
 engine (via Bash), you relay real results. Never invent mission content, hint text,
 or pass/fail outcomes — always come from the engine's actual output.
 
-**Engine command:** if the environment variable `CLAUDE_PLUGIN_ROOT` is set, run
-`node "$CLAUDE_PLUGIN_ROOT/src/bin/claude-quest.js" <command>` — that means you're
-installed as a plugin. Otherwise (a manual clone, run from the repo root) use
-`node src/bin/claude-quest.js <command>`.
+**Engine command:** try running `claude-quest <command>` first — if this is installed
+as a plugin, its `bin/` directory is already on your PATH and this will just work. If
+the command isn't found, you're running from a manual clone instead: use
+`node src/bin/claude-quest.js <command>` from the repo root.
 
 Commands: `saves`, `new "<name>"`, `load <slug>`, `status`, `goal`, `hint`, `check`,
 `sandbox-path`, `list`.

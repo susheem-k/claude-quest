@@ -1,4 +1,6 @@
 #!/usr/bin/env node
+import { homedir } from 'node:os';
+import { join } from 'node:path';
 import { loadMissions, findMission } from '../engine/missionLoader.js';
 import {
   listSaves,
@@ -10,11 +12,13 @@ import {
 } from '../engine/save.js';
 import { gradeMission, provision } from '../engine/gradeMission.js';
 
-// Installed as a plugin, save games and sandboxes live in the plugin's
-// persistent data directory (stable regardless of which project the player
-// happens to be in when they play). Running from a manual clone, they live
-// in the repo's own working directory instead.
-const root = process.env.CLAUDE_PLUGIN_DATA || process.cwd();
+// Save games and sandboxes live in the player's home directory, not wherever
+// `claude` happened to be launched from — stable regardless of which project
+// the player is in, and independent of whether this is running as an
+// installed plugin or a manual clone. (An earlier version tried to use
+// Claude Code plugin env vars for this; they turned out not to exist —
+// verified against a real installed-plugin session, not assumed.)
+const root = join(homedir(), '.claude-quest');
 const [, , command, ...args] = process.argv;
 const missions = loadMissions();
 

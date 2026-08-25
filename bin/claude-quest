@@ -1,0 +1,7 @@
+#!/usr/bin/env node
+// Thin launcher. Claude Code adds a plugin's bin/ directory to PATH when the
+// plugin is installed, so this is what `claude-quest <command>` resolves to
+// in that case. It just delegates to the real script, resolved relative to
+// this file's own location (never cwd) so it works regardless of where the
+// player happens to be when they invoke it.
+import('../src/bin/claude-quest.js');

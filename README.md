@@ -22,8 +22,8 @@ Inside any `claude` session:
 ```
 
 That's it — `claude-quest` is now available from any project, in any `claude`
-session, on this machine. Progress is stored in the plugin's own data directory
-(`$CLAUDE_PLUGIN_DATA`), so it doesn't matter which project you're in when you play.
+session, on this machine. Progress is stored in `~/.claude-quest/` (your home
+directory), so it doesn't matter which project you're in when you play.
 
 <details>
 <summary>Prefer not to install it? Run it from a manual clone instead.</summary>
@@ -34,8 +34,7 @@ cd claude-quest
 claude
 ```
 
-Progress is stored in this repo's own working directory in that case
-(`.claude-quest/`, gitignored).
+Progress is still stored in `~/.claude-quest/` either way.
 </details>
 
 ## How to play
@@ -62,6 +61,8 @@ tier) — see [Roadmap](docs/DESIGN.md#roadmap) and the repo's issues for what's
   `/plugin install` work.
 - `skills/claude-quest/SKILL.md` — the game master. This is what makes the
   experience live entirely inside the `claude` CLI.
+- `bin/claude-quest` — thin launcher. Claude Code puts an installed plugin's `bin/`
+  on `PATH`, so this is what a bare `claude-quest` command resolves to.
 - `src/engine/` — the engine: loads missions, manages save games, provisions
   sandboxes, and runs grading (Tier 1/2 `check.js`, Tier 3 test battery).
 - `src/bin/claude-quest.js` — the command surface the skill calls via Bash. Not

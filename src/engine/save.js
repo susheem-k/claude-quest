@@ -3,13 +3,14 @@ import { join } from 'node:path';
 
 /**
  * Save games. Multiple named characters can play the same campaign
- * independently; one of them is "current" at a time. Everything lives under
- * .claude-quest/ at the campaign root — gitignored, player-local state.
+ * independently; one of them is "current" at a time. `root` (passed in by
+ * every function here) is already the dedicated state directory
+ * (~/.claude-quest — see src/bin/claude-quest.js), so paths here are
+ * relative to it directly, no extra namespacing subdirectory.
  */
 
-const STATE_DIR = '.claude-quest';
-const SAVES_DIR = join(STATE_DIR, 'saves');
-const CURRENT_PATH = join(STATE_DIR, 'current.json');
+const SAVES_DIR = 'saves';
+const CURRENT_PATH = 'current.json';
 
 function slugify(name) {
   const slug = name.trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '');
@@ -59,7 +60,7 @@ export function writeSave(root, save) {
 }
 
 export function setCurrentSlug(root, slug) {
-  mkdirSync(join(root, STATE_DIR), { recursive: true });
+  mkdirSync(root, { recursive: true });
   writeFileSync(join(root, CURRENT_PATH), JSON.stringify({ slug }, null, 2));
 }
 
