@@ -147,23 +147,31 @@ The player never leaves the `claude` CLI. Distributed as an installable plugin
 claude-quest@claude-quest` works directly from the GitHub repo), or usable from a manual
 clone without installing anything. Either way, `skills/claude-quest/SKILL.md` makes
 Claude itself the game master: it calls the engine (`src/bin/claude-quest.js`) via Bash
-and narrates the results, but never fabricates mission content or outcomes. This has a
-real architectural consequence, not just a UX one: it's what determines whether a
-mission needs a nested session.
+and narrates the results, but never fabricates mission content or outcomes.
 
-- **Tier 1** missions don't need a nested `claude` session at all — the game-master
-  session can make the requested file edits directly in the sandbox, the same way a
-  player would really use Claude Code day to day.
+**The game master never authors graded content, for any tier, even on request.** What
+each mission is actually teaching is which commands and paradigms exist and where the
+relevant files live — not producing the artifact for the player. Its job is: point to
+the exact file (`sandbox-path`), explain what's being tested conceptually, optionally
+show a file's current content, then step back. The player creates or edits the content
+themselves, outside that turn of the conversation — by hand, in their own editor, or
+(if they want AI help with wording) in a separate `claude` session they bring the
+result back from. Only once they say they're done does the game master run `check`.
+
+This has a real architectural consequence too, not just a pedagogical one — it's what
+determines whether a mission needs a genuinely separate session:
+
+- **Tier 1** missions don't strictly need a separate `claude` session — the player can
+  edit the file with any tool — but the game-master session must not write it for them.
 - **Tier 2** missions specifically require the player to open their **own**, separate
   `claude` session rooted at the mission's sandbox — that's the only way to produce a
-  genuine invocation event in that sandbox's hook log, and it's also the actual thing
-  the mission is testing (can the player trigger it themselves).
-- **Tier 3** missions don't need a nested session either — fixing the broken file is a
-  normal edit in the game-master session, and grading itself drives the player's local
-  `claude` CLI (see Tier 3 above).
-- **Tier 4** missions also don't need a nested session — producing the artifact is a
-  normal edit in the game-master session, and grading itself drives an isolated judge
-  call against the player's own `claude` CLI (see Tier 4 above).
+  genuine invocation event in that sandbox's log, and it's also the actual thing the
+  mission is testing (can the player trigger it themselves).
+- **Tier 3** missions: same as Tier 1 — the player edits the broken file themselves;
+  grading drives the player's local `claude` CLI against their fix (see Tier 3 above).
+- **Tier 4** missions: same again — the player writes the artifact themselves; grading
+  drives an isolated judge call against the player's own `claude` CLI (see Tier 4
+  above).
 
 **Save games:** multiple named characters can exist at once, each with independent
 progress, under `~/.claude-quest/saves/` — the player's home directory, so progress is

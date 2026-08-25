@@ -15,7 +15,9 @@ something a stranger could understand in five years.
 Read `CHANGE_SUMMARY.md` in this mission's sandbox — it describes a real change:
 session tokens that used to never expire now expire after 15 minutes idle.
 
-Write a commit message for that change into `COMMIT_MSG.txt` in the sandbox.
+Write a commit message for that change into `COMMIT_MSG.txt` in the sandbox — by
+hand. If you want to workshop the wording, open a separate `claude` session and
+draft it there, but place the final text yourself.
 
 ## Graded on
 

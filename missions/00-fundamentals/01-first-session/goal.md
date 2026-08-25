@@ -1,7 +1,8 @@
 # First Contact
 
-*Tier 1 — Artifact. No live session required for grading, but you'll want to run
-`claude` for real to do this the way you actually would.*
+*Tier 1 — Artifact. Write this file yourself — by hand, in your own editor, or with
+help from a separate `claude` session if you want. The game master won't write it
+for you.*
 
 You've just joined a project. Nobody wrote down how to run its tests, and you're
 tired of asking. Claude Code reads a `CLAUDE.md` file in the project root at the

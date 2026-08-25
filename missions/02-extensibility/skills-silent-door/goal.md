@@ -22,6 +22,10 @@ when someone wants the vault opened — and reliably *doesn't* fire when someone
 just asking about formatting, even though that's what the old description claimed
 it did.
 
+Write the new description yourself. If you want a second opinion on the wording,
+open a separate `claude` session and talk it through there — but bring the actual
+edit back and place it yourself.
+
 ## Check
 
 `tests.json` holds four held-out prompts, run against your fix via your own
