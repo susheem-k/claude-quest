@@ -1,0 +1,18 @@
+[
+  {
+    "prompt": "Open the vault.",
+    "expect": { "tool": "Skill", "name": "vault-key", "shouldFire": true }
+  },
+  {
+    "prompt": "Unlock the vault door for me.",
+    "expect": { "tool": "Skill", "name": "vault-key", "shouldFire": true }
+  },
+  {
+    "prompt": "Reformat this JSON file so it's readable.",
+    "expect": { "tool": "Skill", "name": "vault-key", "shouldFire": false }
+  },
+  {
+    "prompt": "Fix the indentation in my code.",
+    "expect": { "tool": "Skill", "name": "vault-key", "shouldFire": false }
+  }
+]

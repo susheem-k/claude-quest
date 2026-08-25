@@ -1,0 +1,133 @@
+# Design
+
+## Premise
+
+Teach the Claude Code CLI the way [GameShell](https://github.com/phyver/GameShell) teaches
+the Unix shell: put the player in a real sandbox, have them do real things, and grade
+progress by inspecting what actually happened — never by asking them to self-report or
+answer a quiz.
+
+GameShell can do this deterministically because shell commands (`cd`, `grep`, `chmod`)
+have deterministic filesystem effects. A large fraction of Claude Code is the same way:
+`.claude/settings.json`, hooks, `CLAUDE.md` memory, subagent files, skill files,
+permissions config — these are all just files, checkable with zero API calls. Only
+missions about the model's live behavior need an actual Claude session, and those are
+scoped carefully (below) so grading stays reliable.
+
+## Mission tiers
+
+Every mission belongs to one of three tiers. The tier is about *what's being tested*, not
+difficulty — arcs mix tiers throughout.
+
+### Tier 1 — Artifact
+
+Did the player produce the right file, correctly shaped? No live session needed.
+
+Example: write a `CLAUDE.md` with a specific memory entry; configure a `PreToolUse` hook
+in `settings.json` with the right matcher.
+
+Graded by: parsing the file deterministically.
+
+### Tier 2 — Invocation
+
+Did the player actually *trigger* the mechanism — a slash command, a skill, a subagent —
+correctly? This needs one real `claude` session, but grading never depends on judging the
+model's output quality.
+
+**Grading mechanism:** the mission sandbox is pre-seeded (as part of its `setup` step)
+with a `PostToolUse` hook matched on the relevant tool (`Skill`, `Task`, etc.) that
+appends a line to a log file every time it fires, including which skill/subagent name
+was invoked. The player opens their own `claude` session in the sandbox and does the
+mission; the engine's `check` step just reads that log — same pattern as GameShell's
+`check.sh` reading `pwd`, pointed at hook output instead.
+
+This also lets a mission test *how* something was invoked: an early mission can require
+explicit invocation (`/skill-name` in the log); a later mission can require the skill
+fired *without* being named, proving the player's `description` frontmatter was written
+well enough for Claude to pick it up on its own.
+
+Cost/ownership note: the player runs their **own** `claude` session with their **own**
+account. The engine only watches the hook log — it never spends API calls on the
+player's behalf.
+
+### Tier 3 — Mastery (deterministic grading, non-deterministic subject)
+
+Something is broken and the player has to fix it to unlock progress — e.g. a skill's
+`description` is too vague to ever fire, or two skills' descriptions collide, or a
+skill's instructions produce the wrong output. The fix requires real judgment about
+prompt/skill design. **Grading still doesn't use an LLM judge.**
+
+**Grading mechanism:** each Tier 3 mission ships a small held-out test-prompt battery
+(3–5 prompts) with an expected *observable outcome* per prompt (not "is this good" —
+"did this specific side effect happen"). When the player believes they've fixed it, the
+engine fires each test prompt at the player's local `claude` CLI in headless mode
+(`claude -p`), using the player's own environment/credentials — same cost model as Tier
+2. Outcomes are checked via the same hook-log/file-diff mechanism as Tier 2. Pass N/M and
+the mission's "door" unlocks.
+
+Worked archetypes:
+
+- **The Silent Door** — a skill exists behind a locked resource with a generic
+  description (`"Helps with formatting"`). Test battery: 2 prompts that *should* trigger
+  it, 2 near-miss prompts that *shouldn't* (belonging to a different skill's territory).
+  Player rewrites the description precisely enough to hit true positives without firing
+  on true negatives — the specificity/recall tradeoff, taught by doing it.
+- **The Wrong Door** — two skills with overlapping descriptions; the wrong one keeps
+  firing (or both do, or neither). Player disambiguates both until every test prompt
+  routes to the correct skill.
+- **The Door Opens Wrong** — invocation always succeeds, but the skill body's
+  instructions are subtly wrong (e.g. writes a key file in the wrong format). Deliberately
+  scoped to missions where "correct" has an objectively checkable artifact (exact
+  filename, exact JSON shape, a regex the output must match) — never open-ended quality —
+  so grading stays deterministic even though authoring the fix requires real judgment.
+
+**Anti-flakiness guardrails**, since a live model is genuinely non-deterministic:
+
+- Test prompts sit far from the trigger boundary (obviously-in / obviously-out), never
+  marginal
+- Small battery (3–5 prompts), run once by default; majority-vote re-run only if a
+  specific mission proves flaky in practice
+- True negatives are mandatory alongside true positives, so an overly-broad fix fails as
+  loudly as a too-narrow one
+
+## Roadmap
+
+**In scope for v1** (this repo, current design): Tiers 1–3 as specified above. Every
+mission — including Tier 3 — reduces to a pass/fail test battery. No mission ever asks an
+LLM to judge subjective quality.
+
+**Explicitly future scope, not v1:** a **Tier 4 — Judgment** tier, where grading itself
+uses an LLM-as-judge for genuinely open-ended output (e.g. "is this a good commit
+message," "is this explanation clear"). This is real and useful territory long-term, but
+it trades away the reliability that makes the earlier tiers cheap to author and safe to
+run unattended — it needs its own rubric-design and anti-gaming work before it's worth
+building. Tracked here so it isn't lost, not designed yet.
+
+Arc outline (content, not yet built):
+
+1. **Fundamentals** — starting a session, basic prompting, reading a diff, approving vs.
+   denying a tool call, permission modes
+2. **Configuration** — `CLAUDE.md` memory, `settings.json`, permissions
+3. **Extensibility** — hooks, skills (incl. the Tier 3 "broken door" missions), subagents,
+   MCP
+4. **Automation** — headless/scripting mode (`claude -p`), piping, CI-style usage — the
+   one arc where the *engine* legitimately invokes Claude directly in `check.sh`, since
+   constructing the correct non-interactive command is the skill being tested, not a
+   shortcut around it
+
+## Mission file contract
+
+Each mission is a directory: `missions/<arc>/<mission-id>/`.
+
+```
+mission.json   metadata: id, title, arc, tier, order
+goal.md        flavor text + hint shown to the player
+setup.js        (optional) seeds the sandbox: files, hook config, locked resources
+check.js       Tier 1/2: deterministic check against sandbox state / hook log
+tests.json     Tier 3 only: held-out prompt battery + expected-outcome checks
+```
+
+`setup.js`, `check.js`, and the test-battery runner are the direct analogs of GameShell's
+`static.sh`, `check.sh`, and `test.sh` — same responsibilities, expressed as Node modules
+instead of POSIX shell so the engine runs natively on Windows/macOS/Linux and can shell
+out to the real `claude` CLI directly.
