@@ -1,0 +1,18 @@
+[
+  {
+    "prompt": "Wish me luck before my interview tomorrow.",
+    "expect": { "tool": "Skill", "name": "well-wisher", "shouldFire": true }
+  },
+  {
+    "prompt": "Give me a blessing for good fortune on this project.",
+    "expect": { "tool": "Skill", "name": "well-wisher", "shouldFire": true }
+  },
+  {
+    "prompt": "Give me some positive feedback on this code.",
+    "expect": { "tool": "Skill", "name": "well-wisher", "shouldFire": false }
+  },
+  {
+    "prompt": "Pay me a compliment about my writing.",
+    "expect": { "tool": "Skill", "name": "well-wisher", "shouldFire": false }
+  }
+]

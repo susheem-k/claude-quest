@@ -4,10 +4,20 @@
     "rank": "Wayfarer",
     "backstory": "You've just been let through the outer gate. The tower keeps no secrets from those who bother to read the walls -- a chronicle carved into the stone by the entrance tells every visitor what they need before they take a step further. Just past it, there's a bare stretch of wall set aside for newcomers to carve their own mark into, so the tower knows you by name too, not just the other way around. Nobody crafts anything here yet. You just learn to read, and to leave a mark of your own."
   },
+  "commands": {
+    "section": "The Console",
+    "rank": "Adept",
+    "backstory": "Just past the gate, before the forge, sits a bank of everyday levers and gauges -- the tower's own control panel. None of them build anything; they just tell you what's happening, or nudge how the tower behaves for you specifically. Some leave a mark somewhere the tower keeps a record of. Others just show you something and vanish the moment you look away -- worth knowing regardless."
+  },
   "extensibility": {
     "section": "The Forge",
     "rank": "Artisan",
     "backstory": "Past the gate is the forge, where the tower's real work happens. Every tool here started as someone's note, repeated enough times that a smith finally gave it a name, a handle, and a hook so it could be picked up on command instead of re-explained from scratch. Some tools answer only when called by name. Others are eager enough to leap into a worker's hand the moment the job calls for them, unasked -- but only if their maker labeled them honestly, and only for the job they were actually made for."
+  },
+  "subagents": {
+    "section": "The Cloister",
+    "rank": "Marshal",
+    "backstory": "Past the forge, the tower keeps a cloister -- cells built for solitary work, each one sealed off from everything else. Whoever works inside sees nothing of what called them there, and reports back only a summary when they're done. You can call on one by name, or leave word precise enough at the door that it's summoned without being asked directly."
   },
   "tooling": {
     "section": "The Armory",

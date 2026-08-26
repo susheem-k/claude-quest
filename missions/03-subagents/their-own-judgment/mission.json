@@ -1,0 +1,12 @@
+{
+  "id": "their-own-judgment",
+  "title": "Their Own Judgment",
+  "arc": "subagents",
+  "tier": 3,
+  "order": 3,
+  "hints": [
+    "Read .claude/agents/town-crier.md — the description is technically true, but too thin for Claude to know when delegating to it actually makes sense.",
+    "A good description says what the agent handles AND when to reach for it, specifically — public announcements, not just \"announcements\" in general.",
+    "If your new description is still broad enough to cover ordinary requests (like listing files), it may fire when it shouldn't — that's the trap."
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "id": "free-up-the-room",
+  "title": "Free Up the Room",
+  "arc": "commands",
+  "tier": 2,
+  "order": 2,
+  "ungraded": true,
+  "hints": [
+    "The command is /compact. Run it in a real session, ideally after the conversation has some length to it.",
+    "There's nothing to check here — just try it and see what it does to the conversation.",
+    "Say \"check\" whenever you're ready to move on."
+  ]
+}

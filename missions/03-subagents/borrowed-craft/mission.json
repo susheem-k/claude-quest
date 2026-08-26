@@ -1,0 +1,12 @@
+{
+  "id": "borrowed-craft",
+  "title": "Borrowed Craft",
+  "arc": "subagents",
+  "tier": 2,
+  "order": 4,
+  "hints": [
+    "There's a herald subagent and a well-wisher skill already sitting in this sandbox — you don't need to write either.",
+    "The herald's own instructions tell it to reach for the well-wisher skill, not to write a blessing itself.",
+    "Ask for the herald by name, the same way you did with town-crier — the skill invocation happens on its own from there."
+  ]
+}

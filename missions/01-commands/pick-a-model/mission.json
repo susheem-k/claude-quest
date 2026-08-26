@@ -1,0 +1,12 @@
+{
+  "id": "pick-a-model",
+  "title": "The Model You Reach For",
+  "arc": "commands",
+  "tier": 2,
+  "order": 1,
+  "hints": [
+    "There's a built-in command for switching models — it starts with a slash.",
+    "/model opus switches to Opus for the session. Add a note that you want it saved as this project's default.",
+    "Claude Code will offer to write .claude/settings.json for you — let it."
+  ]
+}

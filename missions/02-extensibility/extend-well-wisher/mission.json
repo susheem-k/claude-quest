@@ -1,0 +1,12 @@
+{
+  "id": "extend-well-wisher",
+  "title": "Second Craft",
+  "arc": "extensibility",
+  "tier": 3,
+  "order": 3,
+  "hints": [
+    "Read .claude/skills/well-wisher/SKILL.md — the description is technically true, but true enough to match almost anything positive.",
+    "A good description says what the skill is actually for, specifically — wishing someone well, blessings, good fortune — not just \"nice.\"",
+    "If your new description still says something as broad as \"says something nice,\" it'll fire on compliment requests too — that's the trap."
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "id": "summon-a-helper",
+  "title": "Summon a Helper",
+  "arc": "subagents",
+  "tier": 1,
+  "order": 1,
+  "hints": [
+    "A subagent is a single Markdown file at .claude/agents/<name>.md — no folder needed, unlike a skill.",
+    "Frontmatter needs name, description, and tools. Grant it exactly Bash — nothing else yet.",
+    "The body needs to end with this exact line, unchanged: printf '{\"tool\":\"Agent\",\"name\":\"town-crier\"}\\n' >> .claude-quest/hook.log"
+  ]
+}

@@ -1,0 +1,12 @@
+{
+  "id": "first-craft",
+  "title": "First Craft",
+  "arc": "extensibility",
+  "tier": 2,
+  "order": 2,
+  "hints": [
+    "A skill needs a folder at .claude/skills/well-wisher/ containing exactly one file: SKILL.md.",
+    "The frontmatter needs a name and a description, fenced by --- lines, same shape as torch-lighter from the last mission — run sandbox-path on this mission and look at .claude/skills/ from Say the Word if you want a reference.",
+    "The body needs to end with this exact line, unchanged: printf '{\"tool\":\"Skill\",\"name\":\"well-wisher\"}\\n' >> .claude-quest/hook.log"
+  ]
+}

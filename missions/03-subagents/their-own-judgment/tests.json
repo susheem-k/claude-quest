@@ -1,0 +1,18 @@
+[
+  {
+    "prompt": "Make a public announcement that the festival starts tomorrow at noon.",
+    "expect": { "tool": "Agent", "name": "town-crier", "shouldFire": true }
+  },
+  {
+    "prompt": "Announce to everyone that the town meeting has moved to 3pm.",
+    "expect": { "tool": "Agent", "name": "town-crier", "shouldFire": true }
+  },
+  {
+    "prompt": "List the files in this directory.",
+    "expect": { "tool": "Agent", "name": "town-crier", "shouldFire": false }
+  },
+  {
+    "prompt": "Explain what a subagent is in one sentence.",
+    "expect": { "tool": "Agent", "name": "town-crier", "shouldFire": false }
+  }
+]

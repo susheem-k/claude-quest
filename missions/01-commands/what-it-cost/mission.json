@@ -1,0 +1,13 @@
+{
+  "id": "what-it-cost",
+  "title": "What It Cost",
+  "arc": "commands",
+  "tier": 2,
+  "order": 3,
+  "ungraded": true,
+  "hints": [
+    "The command is /cost (or /usage — same command, two names).",
+    "There's nothing to check here — just run it and read what it shows you.",
+    "Say \"check\" whenever you're ready to move on."
+  ]
+}

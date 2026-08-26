@@ -1,0 +1,12 @@
+{
+  "id": "call-on-them",
+  "title": "Call on Them",
+  "arc": "subagents",
+  "tier": 2,
+  "order": 2,
+  "hints": [
+    "There's already a town-crier subagent sitting in this sandbox's .claude/agents/ — you don't need to write one.",
+    "Ask for it by name, explicitly — tell Claude to use the town-crier subagent.",
+    "Open a real claude session inside this mission's sandbox directory and try it there."
+  ]
+}

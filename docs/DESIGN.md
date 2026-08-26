@@ -177,7 +177,9 @@ else. `ranks.json` only has entries for arcs that actually have a mission built;
 | Arc | Section | Rank | Paradigms |
 |---|---|---|---|
 | `fundamentals` | The Gatehall | Wayfarer | Memory (`CLAUDE.md`), incl. the game's own per-character run root |
-| `extensibility` | The Forge | Artisan | Skills (invocation + auto-invoke tuning) |
+| `commands` | The Console | Adept | Built-in commands, graded where they leave a real file effect |
+| `extensibility` | The Forge | Artisan | Skills (invocation, authoring, auto-invoke tuning) |
+| `subagents` | The Cloister | Marshal | Subagents (authoring, explicit + implicit invocation, invoking a skill) |
 | `tooling` | The Armory | Warden | Built-in commands with a real config effect (`/permissions`) |
 
 ## Player experience
@@ -257,48 +259,61 @@ quality), but the grading *mechanism* stays deterministic once the judge's struc
 verdict comes back — no mission anywhere asks the engine to trust an unstructured "looks
 good to me."
 
-**Still open:** authoring the rest of the campaign content — each arc below notes what's
-built and what's planned but not yet built.
+**Built:** all 5 arcs below have at least one mission; 13 missions total. The campaign
+deliberately spreads "commands" and "extensibility" concepts across difficulty levels
+instead of teaching each primitive in one dump — an arc most players reach early
+(`tooling`'s `/permissions`) is simpler than one they reach later (shell-tool access on
+their own artifacts), even though both are nominally about tools. Tier is orthogonal to
+arc — an arc can and does mix tiers:
 
-The campaign is 5 arcs, deliberately spreading "commands" and "extensibility" concepts
-across difficulty levels instead of teaching each primitive in one dump — an arc most
-players reach early (`tooling`'s `/permissions`) is simpler than one they reach later
-(shell-tool access on their own artifacts), even though both are nominally about tools.
-Tier is orthogonal to arc — an arc can and does mix tiers:
-
-1. **`fundamentals`** — built: `CLAUDE.md` project memory (Tier 1, "First Contact"),
-   a nickname in the game's own per-character run root (Tier 1, "Your Own Name").
-   Considered closed at 2 missions by design — onboarding, not a deep arc.
-2. **basic commands** *(arc not yet built)* — `/model`, `/add-dir` (to verify whether
-   either persists to a file, which decides whether they're gradable at all or purely
-   informational), `/compact` and `/cost` (confirmed no file effect — informational
-   only, deliberately ungraded rather than built on an unreliable signal; see
-   [Player experience](#player-experience) for why transcript-parsing isn't the fix).
-3. **`extensibility`** — built: skill invocation (Tier 2, "Say the Word"), skill
-   auto-invocation via description tuning (Tier 3, "The Silent Door"). Planned
-   reorder once built out: invocation, then author a skill from scratch (Tier 2),
-   then extend that same skill until it passes a wider battery (Tier 3) — replacing
-   Silent Door's separate pre-fabricated skill with the player's own artifact.
-4. **subagents** *(arc not yet built)* — create one (no tools, no MCP — purely
-   procedural), invoke it explicitly (Tier 2), get Claude to delegate to it implicitly
-   off its own description (Tier 3, same shape as Silent Door but for `.claude/agents/`).
-   Confirmed live: a subagent granted the `Skill` tool can invoke a project skill by
-   name — planned as a capstone mission for this arc, invoking the skill built in
-   `extensibility`.
-5. **`tooling`** — built: `/permissions` (Tier 2, "The Ledger"). Not yet built:
-   extending the skill from `extensibility` and the subagent from `subagents` to
-   actually use Bash (read/update real information), teaching `allowed-tools` scoping
-   on artifacts the player already built rather than fresh ones.
+1. **`fundamentals`** — `CLAUDE.md` project memory (Tier 1, "First Contact"), a
+   nickname in the game's own per-character run root (Tier 1, "Your Own Name").
+   Closed at 2 missions by design — onboarding, not a deep arc.
+2. **`commands`** — `/model` (Tier 2, "The Model You Reach For" — confirmed it
+   persists to `.claude/settings.json`, but see the verification caveat below);
+   `/compact` and `/cost` (ungraded — confirmed no file effect at all; see
+   `mission.json`'s `ungraded` field and "Why grading never parses session
+   transcripts" above for why these stay informational rather than built on an
+   unstable signal). `/add-dir` not yet tried.
+3. **`extensibility`** — skill invocation (Tier 2, "Say the Word"), authoring a skill
+   from scratch (Tier 2, "First Craft"), then extending that same skill until it
+   passes a held-out battery (Tier 3, "Second Craft") — replaced an earlier "Silent
+   Door" mission that used a separate pre-fabricated skill instead of the player's
+   own.
+4. **`subagents`** — author one, no live session needed (Tier 1, "Summon a Helper");
+   invoke it explicitly (Tier 2, "Call on Them"); get Claude to delegate to it
+   implicitly off its own description (Tier 3, "Their Own Judgment", same shape as
+   "Second Craft" but for `.claude/agents/`); a capstone where a subagent granted the
+   `Skill` tool invokes the skill from `extensibility` (Tier 2, "Borrowed Craft") —
+   confirmed live that this composition actually works.
+5. **`tooling`** — `/permissions` (Tier 2, "The Ledger"). Not yet built: extending the
+   skill from `extensibility` and the subagent from `subagents` to actually use Bash
+   (read/update real information), teaching `allowed-tools` scoping on artifacts the
+   player already built rather than fresh ones.
 
 Dropped entirely (not deferred): an earlier `guardianship` arc (hooks) and `judgment`
 arc (rubric-graded writing) — no overlap with the arc set above.
+
+**A verification gap, stated plainly:** every Tier 2/3 mechanism above was confirmed
+live except `/model`. Skills and subagents can be triggered headlessly via natural
+language (`claude -p "wish me luck"`), so their auto- and explicit-invocation paths
+were tested the same way real grading runs them. `/model` has no such equivalent —
+it's an interactive-only picker UI with nothing for `-p` to drive, so asking Claude to
+"use /model and save it" under `-p` gets inconsistent results (sometimes it writes
+`.claude/settings.json` directly, sometimes it correctly explains it can't simulate an
+interactive command) — noise from testing an interactive feature the wrong way, not
+evidence against the mission. The file-writing mechanism itself is confirmed real (one
+clean run produced `{"model": "opus"}` exactly as expected); what's *not* confirmed is
+the real interactive `/model` flow end to end, the way a real player would actually
+use it, because nothing available can drive a genuine TTY to test it.
 
 ## Mission file contract
 
 Each mission is a directory: `missions/<arc>/<mission-id>/`.
 
 ```
-mission.json   metadata: id, title, arc, tier, order, hints[], artifact (Tier 4 only)
+mission.json   metadata: id, title, arc, tier, order, hints[], artifact (Tier 4 only),
+               ungraded (optional, see below)
 goal.md        flavor text + walkthrough shown to the player
 debrief.md     plain-language recap of the actual Claude Code concept, shown on
                completion — no in-character/fantasy language, see below
@@ -310,6 +325,12 @@ check.js       Tier 1/2: deterministic check against sandbox state / hook log.
 tests.json     Tier 3 only: held-out prompt battery + expected-outcome checks
 rubric.json    Tier 4 only: judged criteria (id + description) + passThreshold
 ```
+
+`mission.json`'s `"ungraded": true` skips `check.js`/tier grading entirely and always
+passes (see `gradeMission.js`) — for the small number of missions teaching a real
+built-in command with no file-level (or otherwise reliably checkable) effect at all,
+like `/compact` or `/cost`. The point of one of these is trying the command and
+reading the debrief, not clearing a gate that doesn't correspond to anything real.
 
 `debrief.md` is the one piece of player-facing mission content that's deliberately
 *not* in-character — the game master relays it verbatim in a plainly separate block

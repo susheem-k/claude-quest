@@ -28,6 +28,16 @@ import { runJudge } from './judge.js';
 export async function gradeMission(root, mission, { runRoot } = {}) {
   const sandboxDir = await provision(root, mission);
 
+  // A small number of missions teach a real built-in command that has no
+  // file-level (or otherwise reliably checkable) effect at all — e.g.
+  // /compact, /cost. Rather than invent a check that doesn't actually check
+  // anything, mission.json can mark these `"ungraded": true` and they pass
+  // unconditionally: the point is trying the command and reading the
+  // debrief, not clearing a gate.
+  if (mission.ungraded) {
+    return { passed: true, sandboxDir, message: 'Nothing to check here — this one is ungraded.' };
+  }
+
   if (mission.tier === 3) {
     const results = runTestBattery(mission, { sandboxDir, hookLogPath: hookLogPath(sandboxDir) });
     const passed = results.length > 0 && results.every((r) => r.passed);
