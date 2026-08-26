@@ -9,8 +9,11 @@ import {
   writeSave,
   setCurrentSlug,
   getActiveSave,
+  deleteSave,
+  resetAllSaves,
 } from '../engine/save.js';
 import { gradeMission, provision } from '../engine/gradeMission.js';
+import { resetSandboxes } from '../engine/provision.js';
 
 // Save games and sandboxes live in the player's home directory, not wherever
 // `claude` happened to be launched from — stable regardless of which project
@@ -194,9 +197,30 @@ switch (command) {
     break;
   }
 
+  case 'reset': {
+    const target = args[0];
+    if (!target) {
+      fail('Usage: claude-quest reset <slug>   (or: claude-quest reset --all)');
+      break;
+    }
+    if (target === '--all') {
+      resetAllSaves(root);
+      resetSandboxes(root);
+      console.log('Reset complete: all saves and mission sandboxes deleted.');
+      break;
+    }
+    const deleted = deleteSave(root, target);
+    if (!deleted) {
+      fail(`No save named "${target}". Run "claude-quest saves" to list them.`);
+      break;
+    }
+    console.log(`Deleted save "${target}". Mission sandboxes are shared across characters and were left as-is — use "reset --all" to also clear those.`);
+    break;
+  }
+
   default: {
     console.log(`Unknown command: ${command ?? '(none)'}`);
-    console.log('Usage: claude-quest <list|new|saves|load|status|goal|hint|check|sandbox-path>');
+    console.log('Usage: claude-quest <list|new|saves|load|status|goal|hint|check|sandbox-path|reset>');
     process.exitCode = 1;
   }
 }

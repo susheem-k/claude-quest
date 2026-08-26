@@ -1,4 +1,4 @@
-import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, writeFileSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
@@ -8,6 +8,16 @@ const RUNS_DIR = 'runs';
 
 export function sandboxDirFor(root, mission) {
   return join(root, RUNS_DIR, mission.key);
+}
+
+/**
+ * Deletes every mission sandbox. Sandboxes are keyed by mission, not by
+ * save slug (see sandboxDirFor) — so this is shared across every character,
+ * and a full reset needs it alongside resetAllSaves to avoid a new
+ * character inheriting a previous character's already-solved sandboxes.
+ */
+export function resetSandboxes(root) {
+  rmSync(join(root, RUNS_DIR), { recursive: true, force: true });
 }
 
 /**

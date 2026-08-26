@@ -1,4 +1,4 @@
-import { existsSync, mkdirSync, readFileSync, writeFileSync, readdirSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync, readdirSync, rmSync, unlinkSync } from 'node:fs';
 import { join } from 'node:path';
 
 /**
@@ -75,4 +75,26 @@ export function getActiveSave(root) {
   const slug = getCurrentSlug(root);
   if (!slug) return null;
   return loadSave(root, slug);
+}
+
+/**
+ * Deletes one character's save. If it was the active save, also clears
+ * current.json so a stale slug doesn't linger as "current" once its file
+ * is gone.
+ */
+export function deleteSave(root, slug) {
+  const path = savePath(root, slug);
+  if (!existsSync(path)) return false;
+  unlinkSync(path);
+  if (getCurrentSlug(root) === slug) {
+    const currentPath = join(root, CURRENT_PATH);
+    if (existsSync(currentPath)) unlinkSync(currentPath);
+  }
+  return true;
+}
+
+/** Deletes every save and clears current.json — mission sandboxes are untouched. */
+export function resetAllSaves(root) {
+  rmSync(join(root, SAVES_DIR), { recursive: true, force: true });
+  rmSync(join(root, CURRENT_PATH), { force: true });
 }

@@ -26,7 +26,7 @@ the command isn't found, you're running from a manual clone instead: use
 `node src/bin/claude-quest.js <command>` from the repo root.
 
 Commands: `saves`, `new "<name>"`, `load <slug>`, `status`, `goal`, `hint`, `check`,
-`sandbox-path`, `list`.
+`sandbox-path`, `list`, `reset <slug>`, `reset --all`.
 
 ## Starting a session
 
@@ -51,6 +51,12 @@ Map what the player says to engine commands; don't guess at outcomes yourself.
   - `CAMPAIGN_STATUS: finished` → the campaign is complete, congratulate them.
 - **"hint" / "help" / "I'm stuck"** → run `hint`, relay it exactly. If it says hints
   are exhausted, say so — don't invent a new one.
+- **"reset" / "start over" / "delete my save"** → this is destructive and
+  irreversible, so confirm what they mean before running anything: one character's
+  save (`reset <slug>`, which leaves shared mission sandboxes untouched — a fresh
+  character can still hit an already-solved sandbox from a prior run) or everything
+  (`reset --all`, which also wipes every mission sandbox). Don't run either without
+  the player explicitly confirming which.
 - **Tier-dependent execution** (check the mission's tier from `status`/`goal`):
   - **Tier 1** (artifact): run `sandbox-path`, tell them which file to create/edit
     there and what it needs to accomplish (from `goal`). They create it — outside
