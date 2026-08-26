@@ -10,7 +10,10 @@
   <a href="LICENSE"><img alt="license" src="https://img.shields.io/badge/license-MIT-8A5A2B?style=flat-square"></a>
   <img alt="node" src="https://img.shields.io/badge/node-%3E%3D18-D97757?style=flat-square">
   <img alt="status" src="https://img.shields.io/badge/status-playable%20alpha-D97757?style=flat-square">
+  <a href="https://github.com/susheem-k/claude-quest/stargazers"><img alt="GitHub stars" src="https://img.shields.io/github/stars/susheem-k/claude-quest?style=flat-square&color=D97757"></a>
 </p>
+
+<p align="center">If this taught you something about Claude Code, a ⭐ helps other people find it.</p>
 
 Inspired by [GameShell](https://github.com/phyver/GameShell) — a game that teaches Unix
 shell commands by dropping you into a real shell wrapped in a themed fake filesystem, and
@@ -97,6 +100,17 @@ If you hit a rough edge or have a mission idea, issues and PRs are welcome.
 - The `claude` CLI installed and authenticated under your own account (live-session
   missions run against *your* Claude Code usage, not the project's — the engine never
   makes API calls on your behalf beyond what you'd run yourself)
+
+## Star History
+
+<p align="center">
+  <a href="https://star-history.com/#susheem-k/claude-quest&Date">
+    <picture>
+      <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=susheem-k/claude-quest&type=Date&theme=dark">
+      <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=susheem-k/claude-quest&type=Date">
+    </picture>
+  </a>
+</p>
 
 ## License
 
