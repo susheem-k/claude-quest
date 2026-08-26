@@ -1,0 +1,12 @@
+{
+  "id": "widen-the-herald",
+  "title": "Widen the Herald's Reach",
+  "arc": "tooling",
+  "tier": 2,
+  "order": 3,
+  "hints": [
+    "The herald is scoped to just Skill right now — it has nothing to write a ledger entry with. Add Bash to its tools list.",
+    "Then extend its action so it actually appends the requested message to town-ledger.txt, using the Bash tool it now has.",
+    "Open a session here and ask the herald to record something, so the ledger really grows."
+  ]
+}

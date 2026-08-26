@@ -253,13 +253,14 @@ across sessions.
 
 ## Roadmap
 
-**Built:** Tiers 1–4 as specified above, each with one worked example mission. Tier 4 is
-the one tier where the *subject* being graded is genuinely non-deterministic (writing
-quality), but the grading *mechanism* stays deterministic once the judge's structured
-verdict comes back — no mission anywhere asks the engine to trust an unstructured "looks
-good to me."
+**Built:** Tiers 1–3 are exercised by real missions below; Tier 4's mechanism exists
+(`judge.js`) but no current mission uses it — see the note at the end of the Tier 4
+section above. Tier 4 is the one tier where the *subject* being graded is genuinely
+non-deterministic (writing quality), but the grading *mechanism* stays deterministic
+once the judge's structured verdict comes back — no mission anywhere asks the engine to
+trust an unstructured "looks good to me."
 
-**Built:** all 5 arcs below have at least one mission; 13 missions total. The campaign
+All 5 arcs below have at least one mission; 15 missions total. The campaign
 deliberately spreads "commands" and "extensibility" concepts across difficulty levels
 instead of teaching each primitive in one dump — an arc most players reach early
 (`tooling`'s `/permissions`) is simpler than one they reach later (shell-tool access on
@@ -286,13 +287,22 @@ arc — an arc can and does mix tiers:
    "Second Craft" but for `.claude/agents/`); a capstone where a subagent granted the
    `Skill` tool invokes the skill from `extensibility` (Tier 2, "Borrowed Craft") —
    confirmed live that this composition actually works.
-5. **`tooling`** — `/permissions` (Tier 2, "The Ledger"). Not yet built: extending the
-   skill from `extensibility` and the subagent from `subagents` to actually use Bash
-   (read/update real information), teaching `allowed-tools` scoping on artifacts the
-   player already built rather than fresh ones.
+5. **`tooling`** — `/permissions` (Tier 2, "The Ledger"); extending the well-wisher
+   skill from `extensibility` to actually read/update a file via Bash, scoped down
+   with `allowed-tools` on purpose (Tier 2, "Give the Craft Hands"); extending the
+   herald subagent from `subagents` the same way, but from the opposite direction —
+   it starts scoped to `Skill` only and has to have `Bash` added explicitly before it
+   can do anything with a file (Tier 2, "Widen the Herald's Reach"). The two mirror
+   each other on purpose: a skill starts with every tool the session has and gets
+   scoped down; a subagent starts with only what its `tools` list says and gets
+   widened.
 
 Dropped entirely (not deferred): an earlier `guardianship` arc (hooks) and `judgment`
 arc (rubric-graded writing) — no overlap with the arc set above.
+
+Nothing is currently "not yet built" — all 5 arcs, 15 missions, are complete. Further
+content (MCP, plugins, a genuinely new Tier 4 subject) would extend this, not fill a
+gap in it.
 
 **A verification gap, stated plainly:** every Tier 2/3 mechanism above was confirmed
 live except `/model`. Skills and subagents can be triggered headlessly via natural

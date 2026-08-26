@@ -1,0 +1,12 @@
+{
+  "id": "give-the-craft-hands",
+  "title": "Give the Craft Hands",
+  "arc": "tooling",
+  "tier": 2,
+  "order": 2,
+  "hints": [
+    "The well-wisher only talks right now — it never touches blessing-count.txt. Its action needs a real Bash step: read the number, add one, write it back.",
+    "A skill has full tool access by default. Add allowed-tools: Bash to the frontmatter to explicitly scope it down to just what it needs — the point isn't that it needs granting, it's that it should be limited on purpose.",
+    "Open a session here and actually invoke well-wisher once you've edited it, so blessing-count.txt really changes."
+  ]
+}
