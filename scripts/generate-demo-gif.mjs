@@ -216,7 +216,7 @@ function lzwEncode(minCodeSize, data) {
     bw.write(dict.get(w), codeSize);
     dict.set(wk, nextCode);
     nextCode++;
-    if (nextCode > (1 << codeSize) - 1 && codeSize < 12) codeSize++;
+    if (nextCode > 1 << codeSize && codeSize < 12) codeSize++;
     if (nextCode >= 4096) resetDict(), bw.write(clearCode, minCodeSize + 1);
     w = String(k);
   }
