@@ -1,6 +1,16 @@
-# claude-quest
+<p align="center">
+  <img src="assets/logo.svg" alt="claude-quest mascot" width="140" height="140">
+</p>
 
-An in-terminal RPG for learning the Claude Code CLI, zero to hero.
+<h1 align="center">claude-quest</h1>
+
+<p align="center">An in-terminal RPG for learning the Claude Code CLI, zero to hero.</p>
+
+<p align="center">
+  <a href="LICENSE"><img alt="license" src="https://img.shields.io/badge/license-MIT-8A5A2B?style=flat-square"></a>
+  <img alt="node" src="https://img.shields.io/badge/node-%3E%3D18-D97757?style=flat-square">
+  <img alt="status" src="https://img.shields.io/badge/status-playable%20alpha-D97757?style=flat-square">
+</p>
 
 Inspired by [GameShell](https://github.com/phyver/GameShell) — a game that teaches Unix
 shell commands by dropping you into a real shell wrapped in a themed fake filesystem, and
@@ -11,6 +21,12 @@ files you wrote, hooks that fired, tool calls that happened — rather than aski
 self-report.
 
 Full design rationale is in [`docs/DESIGN.md`](docs/DESIGN.md).
+
+## Demo
+
+<p align="center">
+  <img src="assets/demo.gif" alt="a terminal session playing claude-quest: inviting claude, checking a mission, and ranking up" width="600">
+</p>
 
 ## Install
 
@@ -53,6 +69,8 @@ per-mission hints, sandbox provisioning, and grading for all four tiers — incl
 Tier 4's rubric-graded judge calls. Only 4 example missions exist so far (one per
 tier) — see [Roadmap](docs/DESIGN.md#roadmap) and the repo's issues for what's next.
 
+If you hit a rough edge or have a mission idea, issues and PRs are welcome.
+
 ## Quick orientation
 
 - `docs/DESIGN.md` — the actual design doc: mission tiers, grading mechanism, mission
@@ -69,6 +87,9 @@ tier) — see [Roadmap](docs/DESIGN.md#roadmap) and the repo's issues for what's
   meant to be run directly by a player.
 - `missions/<arc>/<mission>/` — one directory per mission. See `docs/DESIGN.md` for the
   file contract each mission directory follows.
+- `assets/` — the mascot and demo GIF, plus the scripts that generate them
+  (`scripts/generate-logo-svg.mjs`, `scripts/generate-demo-gif.mjs`) — both
+  dependency-free, so re-running them needs nothing but Node.
 
 ## Requirements
 
@@ -80,4 +101,6 @@ tier) — see [Roadmap](docs/DESIGN.md#roadmap) and the repo's issues for what's
 ## License
 
 MIT — see [LICENSE](LICENSE). This is an original implementation; it borrows GameShell's
-architectural ideas (not its code), which remains GPLv3 in its own repo.
+architectural ideas (not its code), which remains GPLv3 in its own repo. The mascot in
+`assets/logo.svg` is an original, unofficial fan illustration for this project — it isn't
+Anthropic or Claude branding.
