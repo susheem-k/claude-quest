@@ -101,17 +101,6 @@ If you hit a rough edge or have a mission idea, issues and PRs are welcome.
   missions run against *your* Claude Code usage, not the project's — the engine never
   makes API calls on your behalf beyond what you'd run yourself)
 
-## Star History
-
-<p align="center">
-  <a href="https://star-history.com/#susheem-k/claude-quest&Date">
-    <picture>
-      <source media="(prefers-color-scheme: dark)" srcset="https://api.star-history.com/svg?repos=susheem-k/claude-quest&type=Date&theme=dark">
-      <img alt="Star History Chart" src="https://api.star-history.com/svg?repos=susheem-k/claude-quest&type=Date">
-    </picture>
-  </a>
-</p>
-
 ## License
 
 MIT — see [LICENSE](LICENSE). This is an original implementation; it borrows GameShell's
