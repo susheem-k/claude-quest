@@ -1,0 +1,21 @@
+{
+  "criteria": [
+    {
+      "id": "concrete-steps",
+      "description": "The plan names specific files or components it will change (at minimum, something in src/api/middleware/ and login.js), not just a restatement of the goal in vaguer words."
+    },
+    {
+      "id": "scope-discipline",
+      "description": "The plan stays within the brief's stated scope: it does not propose touching /signup, adding a new external dependency, or anything else the brief explicitly marked out of scope."
+    },
+    {
+      "id": "names-a-risk",
+      "description": "The plan explicitly names at least one real risk, tradeoff, or open question about its own approach (for example: an in-memory counter not surviving a restart or not working across multiple server instances, or shared IPs behind NAT causing false positives)."
+    },
+    {
+      "id": "no-filler",
+      "description": "The plan does not open with throat-clearing filler like 'This plan will...' or 'In this document...'."
+    }
+  ],
+  "passThreshold": 0.75
+}

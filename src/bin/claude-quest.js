@@ -114,6 +114,7 @@ switch (command) {
     console.log(`Character: ${save.name}`);
     console.log(`Progress: ${save.completed.length}/${missions.length} missions complete`);
     console.log(`Current mission: [tier ${mission.tier}] ${mission.key} — ${mission.title}`);
+    console.log(`Arc: ${mission.arc}`);
     break;
   }
 
@@ -122,6 +123,7 @@ switch (command) {
     if (!save) break;
     const mission = currentMission(save);
     if (!mission) break;
+    console.log(`Arc: ${mission.arc}`);
     console.log(mission.goal);
     break;
   }
@@ -189,6 +191,7 @@ switch (command) {
       writeSave(root, save);
       console.log('MISSION_STATUS: complete');
       console.log(`Next mission: [tier ${next.tier}] ${next.key} — ${next.title}`);
+      console.log(`Next arc: ${next.arc}`);
     } else {
       writeSave(root, save);
       console.log('MISSION_STATUS: complete');

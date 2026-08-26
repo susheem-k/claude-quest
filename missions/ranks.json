@@ -1,0 +1,22 @@
+{
+  "fundamentals": {
+    "section": "The Gatehall",
+    "rank": "Wayfarer",
+    "backstory": "You've just been let through the outer gate. The tower keeps no secrets from those who bother to read the walls -- a chronicle carved into the stone by the entrance tells every visitor what they need before they take a step further. And by the gate hangs a rack of tools any traveler may use freely: a bell to call for a status report, a mirror to see how full your pack already is, a ledger to check what's been granted and what's been refused. Nobody crafts anything here. You just learn to read, and to reach for what's already offered."
+  },
+  "extensibility": {
+    "section": "The Forge",
+    "rank": "Artisan",
+    "backstory": "Past the gate is the forge, where the tower's real work happens. Every tool here started as someone's note, repeated enough times that a smith finally gave it a name, a handle, and a hook so it could be picked up on command instead of re-explained from scratch. Some tools answer only when called by name. Others are eager enough to leap into a worker's hand the moment the job calls for them, unasked -- but only if their maker labeled them honestly, and only for the job they were actually made for."
+  },
+  "guardianship": {
+    "section": "The Warded Deep",
+    "rank": "Warden",
+    "backstory": "Below the forge, the tower thins into tunnels: locks that decide what may be touched, sentries posted at every doorway who act the instant someone crosses regardless of who's watching. None of it works by asking nicely. It works because someone set the rules in advance and trusted the deep to enforce them without supervision."
+  },
+  "judgment": {
+    "section": "The Summit",
+    "rank": "Archon",
+    "backstory": "At the top, there's no rulebook left to follow -- only judgment. What's written here is graded by whether it would actually hold up to a stranger reading it cold, not by whether it ticks a checklist."
+  }
+}

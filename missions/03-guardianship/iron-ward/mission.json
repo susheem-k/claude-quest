@@ -1,0 +1,12 @@
+{
+  "id": "iron-ward",
+  "title": "The Iron Ward",
+  "arc": "guardianship",
+  "tier": 3,
+  "order": 1,
+  "hints": [
+    "Read .claude/settings.json — there's already a PreToolUse hook registered, pointed at a guard script that looks correct.",
+    "The hook has a matcher field that decides which tool it even watches. Check what tool this sandbox's commands actually run through.",
+    "The fix is one word: the matcher currently says \"Write\". Bash commands never pass through a hook matched on Write."
+  ]
+}

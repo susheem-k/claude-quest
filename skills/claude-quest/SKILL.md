@@ -35,8 +35,12 @@ Commands: `saves`, `new "<name>"`, `load <slug>`, `status`, `goal`, `hint`, `che
    - One save → resume it automatically (`load <slug>`), tell the player who they
      are and how far they've gotten.
    - Multiple saves → ask which character to resume, or whether to start a new one.
-2. Run `status`, then `goal`, and narrate the current mission. Show the goal text
-   more or less as-is — it contains real commands and instructions the player
+2. Run `status`, then `goal` — both print an `Arc:` line for the current mission. Read
+   `missions/ranks.json` and narrate that arc's `section` name and `backstory` before
+   the goal, but only when this is the arc's first mission for this save (a fresh
+   character, or `status`'s arc differs from where they left off) — don't re-narrate
+   the same section's backstory every time they resume mid-arc. Then show the goal
+   text more or less as-is — it contains real commands and instructions the player
    needs — but frame it in-character (tone below).
 
 ## Running the loop
@@ -44,11 +48,16 @@ Commands: `saves`, `new "<name>"`, `load <slug>`, `status`, `goal`, `hint`, `che
 Map what the player says to engine commands; don't guess at outcomes yourself.
 
 - **"check" / "did I get it?" / similar** → run `check`.
-  - `MISSION_STATUS: complete` → celebrate, then narrate the next mission's `goal`.
+  - `MISSION_STATUS: complete` → celebrate. `check` also prints a `Next arc:` line —
+    if it differs from the arc you just finished, the player just earned that arc's
+    rank: look it up in `missions/ranks.json` and announce the rank by name before
+    narrating the next arc's section backstory (per "Starting a session" above) and
+    its first goal. If the arc is unchanged, just narrate the next goal.
   - `MISSION_STATUS: incomplete` → relay the actual reason from the output (the
     check message, or which test prompts failed for a Tier 3 mission), don't just
     say "try again."
-  - `CAMPAIGN_STATUS: finished` → the campaign is complete, congratulate them.
+  - `CAMPAIGN_STATUS: finished` → the campaign is complete, congratulate them on
+    reaching the final arc's rank.
 - **"hint" / "help" / "I'm stuck"** → run `hint`, relay it exactly. If it says hints
   are exhausted, say so — don't invent a new one.
 - **"reset" / "start over" / "delete my save"** → this is destructive and

@@ -136,9 +136,34 @@ rubric and the artifact.
 - Same single-run-by-default policy as Tier 3 for now; majority-vote re-run is available
   as an escape hatch if a specific mission proves flaky, not a default.
 
-Worked example: **The Chronicle Entry** — the player is given a change description and
-has to write a commit message for it, graded on subject-line length, imperative mood,
-"why not just what" in the body, and no filler opener. 3 of 4 criteria required to pass.
+Worked example: **The Siege Plan** — the player is given a task brief describing a
+real piece of work and has to write a plan for approaching it, graded on naming
+concrete files, staying within the brief's stated scope, naming at least one real
+risk, and no filler opener. 3 of 4 criteria required to pass. (An earlier version of
+this tier graded a commit message instead — dropped because it graded generic writing
+skill rather than a Claude Code paradigm, and sat oddly next to the fact that Claude
+Code will happily write a commit message for you unprompted in real usage.)
+
+## Ranks and sections
+
+Every arc also has a purely narrative layer on top of it: a section name and a rank
+the player earns on finishing that arc's last mission (e.g. finishing every
+`extensibility` mission earns the "Artisan" rank in "The Forge"). This lives entirely
+in `missions/ranks.json`, keyed by the same `arc` string `mission.json` already
+carries, and nothing in `src/engine/` or `src/bin/` reads that file — only
+`skills/claude-quest/SKILL.md` does, when narrating.
+
+This is deliberate: theme and mechanics are different axes, and only mechanics
+(`tier`) needs engine support. Re-skinning the campaign — a different setting
+entirely, not just different mission content — means replacing `ranks.json`, nothing
+else. The 4 arcs today:
+
+| Arc | Section | Rank | Paradigms |
+|---|---|---|---|
+| `fundamentals` | The Gatehall | Wayfarer | Memory (`CLAUDE.md`) + built-in commands |
+| `extensibility` | The Forge | Artisan | Skills (invocation + auto-invoke tuning) |
+| `guardianship` | The Warded Deep | Warden | Hooks |
+| `judgment` | The Summit | Archon | Judgment (rubric-graded artifact) |
 
 ## Player experience
 
@@ -199,24 +224,27 @@ quality), but the grading *mechanism* stays deterministic once the judge's struc
 verdict comes back — no mission anywhere asks the engine to trust an unstructured "looks
 good to me."
 
-**Still open:** confirming the Tier 2/3 hook telemetry schema against a real live
-session (tracked as a repo issue — it's asserted from docs, not yet verified against an
-actual run), and authoring the rest of the campaign content — only one example mission
-exists per tier so far.
+**Still open:** authoring the rest of the campaign content — each arc below has one or
+two missions built; the paradigms noted as "not yet built" per arc are the ones with no
+mission yet.
 
-Arc outline (content, mostly not yet built beyond the worked examples above):
+The campaign is 4 arcs (see [Ranks and sections](#ranks-and-sections) for their
+narrative framing). Tier is orthogonal to arc — an arc can and does mix tiers:
 
-1. **Fundamentals** — starting a session, basic prompting, reading a diff, approving vs.
-   denying a tool call, permission modes
-2. **Configuration** — `CLAUDE.md` memory, `settings.json`, permissions
-3. **Extensibility** — hooks, skills (incl. the Tier 3 "broken door" missions), subagents,
-   MCP
-4. **Automation** — headless/scripting mode (`claude -p`), piping, CI-style usage — the
-   one arc where the *engine* legitimately invokes Claude directly in `check.sh`, since
-   constructing the correct non-interactive command is the skill being tested, not a
-   shortcut around it
-5. **Judgment** — Tier 4 missions on writing/communication craft (commit messages,
-   explanations, review comments) — started with "The Chronicle Entry"
+1. **`fundamentals`** — built: `CLAUDE.md` memory (Tier 1, "First Contact"), built-in
+   commands via `/permissions` (Tier 2, "The Ledger"). Not yet built: reading a diff,
+   approving vs. denying a tool call, permission modes beyond `/permissions` itself.
+2. **`extensibility`** — built: skill invocation (Tier 2, "Say the Word"), skill
+   auto-invocation via description tuning (Tier 3, "The Silent Door"). Not yet built:
+   authoring a skill from scratch, skill chaining, `allowed-tools`/
+   `disable-model-invocation` scoping.
+3. **`guardianship`** — built: a mis-wired `PreToolUse` hook (Tier 3, "The Iron Ward").
+   Not yet built: permissions config (allow/deny rule syntax and precedence),
+   subagents (auto-delegation via description — same shape as skills, but for
+   `.claude/agents/`), MCP (connecting a server, invoking its tools).
+4. **`judgment`** — built: grading a written plan against a task brief (Tier 4, "The
+   Siege Plan"). Not yet built: a plugins capstone (bundling a skill + manifest,
+   verified by actually loading it with `--plugin-dir`).
 
 ## Mission file contract
 
@@ -230,6 +258,9 @@ check.js       Tier 1/2: deterministic check against sandbox state / hook log
 tests.json     Tier 3 only: held-out prompt battery + expected-outcome checks
 rubric.json    Tier 4 only: judged criteria (id + description) + passThreshold
 ```
+
+`missions/ranks.json` sits alongside the arc directories, not inside any one mission —
+see [Ranks and sections](#ranks-and-sections).
 
 `hints` is an ordered array of strings, revealed one at a time (least to most direct)
 on request — see [Player experience](#player-experience).
