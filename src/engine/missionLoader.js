@@ -25,11 +25,13 @@ export function loadMissions(root = MISSIONS_ROOT) {
       if (!existsSync(manifestPath)) continue;
       const manifest = JSON.parse(readFileSync(manifestPath, 'utf8'));
       const goalPath = join(missionPath, 'goal.md');
+      const debriefPath = join(missionPath, 'debrief.md');
       arcMissions.push({
         ...manifest,
         key: `${arc}/${id}`,
         path: missionPath,
         goal: existsSync(goalPath) ? readFileSync(goalPath, 'utf8') : '',
+        debrief: existsSync(debriefPath) ? readFileSync(debriefPath, 'utf8') : '',
       });
     }
     arcMissions.sort((a, b) => (a.order ?? 0) - (b.order ?? 0));

@@ -11,7 +11,9 @@ import {
   getActiveSave,
   deleteSave,
   resetAllSaves,
+  runRootFor,
 } from '../engine/save.js';
+import { mkdirSync } from 'node:fs';
 import { gradeMission, provision } from '../engine/gradeMission.js';
 import { resetSandboxes } from '../engine/provision.js';
 
@@ -145,6 +147,17 @@ switch (command) {
     break;
   }
 
+  case 'run-root': {
+    const save = requireActiveSave();
+    if (!save) break;
+    // Ensures the directory exists — older saves created before this
+    // command existed won't have one yet.
+    const dir = runRootFor(root, save.slug);
+    mkdirSync(dir, { recursive: true });
+    console.log(dir);
+    break;
+  }
+
   case 'sandbox-path': {
     const save = requireActiveSave();
     if (!save) break;
@@ -163,7 +176,7 @@ switch (command) {
     const mission = currentMission(save);
     if (!mission) break;
 
-    const result = await gradeMission(root, mission);
+    const result = await gradeMission(root, mission, { runRoot: runRootFor(root, save.slug) });
 
     if (mission.tier === 3) {
       for (const r of result.results) {
@@ -190,11 +203,13 @@ switch (command) {
       save.currentMissionKey = next.key;
       writeSave(root, save);
       console.log('MISSION_STATUS: complete');
+      if (mission.debrief) console.log(`DEBRIEF:\n${mission.debrief.trim()}`);
       console.log(`Next mission: [tier ${next.tier}] ${next.key} — ${next.title}`);
       console.log(`Next arc: ${next.arc}`);
     } else {
       writeSave(root, save);
       console.log('MISSION_STATUS: complete');
+      if (mission.debrief) console.log(`DEBRIEF:\n${mission.debrief.trim()}`);
       console.log('CAMPAIGN_STATUS: finished — no missions remain.');
     }
     break;
@@ -223,7 +238,7 @@ switch (command) {
 
   default: {
     console.log(`Unknown command: ${command ?? '(none)'}`);
-    console.log('Usage: claude-quest <list|new|saves|load|status|goal|hint|check|sandbox-path|reset>');
+    console.log('Usage: claude-quest <list|new|saves|load|status|goal|hint|check|sandbox-path|run-root|reset>');
     process.exitCode = 1;
   }
 }

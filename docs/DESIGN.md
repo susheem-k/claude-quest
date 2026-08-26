@@ -94,6 +94,22 @@ Worked archetypes:
   specific mission proves flaky in practice
 - True negatives are mandatory alongside true positives, so an overly-broad fix fails as
   loudly as a too-narrow one
+- Prompts tell the model exactly what action to take ("use the Bash tool to run exactly
+  this command") rather than describing a goal and leaving the model to decide how to
+  pursue it — an underspecified prompt sometimes gets the model exploring instead of
+  acting (or, for a destructive-sounding action, refusing on its own judgment even under
+  direct instruction), which is noise from the model's own interpretation, not a signal
+  about whether the fix works
+
+**A load-bearing operational detail:** `runTestBattery`'s spawned `claude -p` calls pass
+`--permission-mode bypassPermissions`. Without it, a battery prompt run against a
+genuinely fresh sandbox — the state every real player's sandbox is actually in — gets
+refused in one of several different ways depending on what the fix asks Claude to do: an
+untrusted-workspace warning, a flat "output redirection blocked," or a silent
+"needs approval" that never resolves headless. Confirmed live: identical commands succeed
+immediately with the flag and fail every one of those ways without it. Safe specifically
+because this call only ever targets a disposable, engine-provisioned mission sandbox,
+never the player's real project.
 
 ### Tier 4 — Judgment
 
@@ -136,13 +152,12 @@ rubric and the artifact.
 - Same single-run-by-default policy as Tier 3 for now; majority-vote re-run is available
   as an escape hatch if a specific mission proves flaky, not a default.
 
-Worked example: **The Siege Plan** — the player is given a task brief describing a
-real piece of work and has to write a plan for approaching it, graded on naming
-concrete files, staying within the brief's stated scope, naming at least one real
-risk, and no filler opener. 3 of 4 criteria required to pass. (An earlier version of
-this tier graded a commit message instead — dropped because it graded generic writing
-skill rather than a Claude Code paradigm, and sat oddly next to the fact that Claude
-Code will happily write a commit message for you unprompted in real usage.)
+No Tier 4 mission is currently built. Two earlier attempts were retired for the same
+reason: a graded commit message, then a graded task plan, both graded generic
+writing/communication skill rather than a Claude Code paradigm specifically — worth
+keeping the mechanism (it's the only tier that handles genuinely non-fixed-answer
+subjects), but the next mission built against it needs a subject where the *judgment*
+itself is the Claude Code lesson, not just the writing quality.
 
 ## Ranks and sections
 
@@ -156,14 +171,14 @@ carries, and nothing in `src/engine/` or `src/bin/` reads that file — only
 This is deliberate: theme and mechanics are different axes, and only mechanics
 (`tier`) needs engine support. Re-skinning the campaign — a different setting
 entirely, not just different mission content — means replacing `ranks.json`, nothing
-else. The 4 arcs today:
+else. `ranks.json` only has entries for arcs that actually have a mission built; see
+[Roadmap](#roadmap) for arcs planned but not yet built. The arcs ranked today:
 
 | Arc | Section | Rank | Paradigms |
 |---|---|---|---|
-| `fundamentals` | The Gatehall | Wayfarer | Memory (`CLAUDE.md`) + built-in commands |
+| `fundamentals` | The Gatehall | Wayfarer | Memory (`CLAUDE.md`), incl. the game's own per-character run root |
 | `extensibility` | The Forge | Artisan | Skills (invocation + auto-invoke tuning) |
-| `guardianship` | The Warded Deep | Warden | Hooks |
-| `judgment` | The Summit | Archon | Judgment (rubric-graded artifact) |
+| `tooling` | The Armory | Warden | Built-in commands with a real config effect (`/permissions`) |
 
 ## Player experience
 
@@ -198,11 +213,29 @@ determines whether a mission needs a genuinely separate session:
   drives an isolated judge call against the player's own `claude` CLI (see Tier 4
   above).
 
+**Why grading never parses session transcripts:** it's tempting, for a mission like
+"basic commands" where most built-in commands leave no file behind, to read
+`~/.claude/projects/<project>/<session-id>.jsonl` and check whether the player typed a
+given command. Rejected for two reasons, confirmed live: a slash command typed as a
+`claude -p` prompt isn't parsed as a command at all — it's literal text handed to the
+model, which just tries to interpret it — so the mechanism wouldn't even let the engine
+script a battery the way Tier 3 does. And separately, Claude Code's own docs say the
+transcript's entry format is internal and can change on any release, which is exactly
+the kind of foundation this project avoids building on. A command with no file effect
+stays informational-only rather than gradable on an unstable signal.
+
 **Save games:** multiple named characters can exist at once, each with independent
 progress, under `~/.claude-quest/saves/` — the player's home directory, so progress is
 stable no matter which project they're in or whether this is running as an installed
 plugin or a manual clone. One save is "current" at a time (`~/.claude-quest/current.json`).
 See `src/engine/save.js` and `src/bin/claude-quest.js`.
+
+**Run root:** separate from a save's JSON file and separate from any mission's
+disposable sandbox, each character also gets a persistent directory —
+`~/.claude-quest/saves/<slug>/` — that lasts the whole playthrough. A mission can point
+the player at a file there (`run-root` prints the path, the way `sandbox-path` does for
+a mission sandbox) when what it's testing is meant to last past that one mission, not
+be thrown away with the sandbox. See `runRootFor` in `src/engine/save.js`.
 
 (An earlier version tried to key this off Claude Code plugin env vars —
 `$CLAUDE_PLUGIN_DATA` / `$CLAUDE_PLUGIN_ROOT`. Verified against a real installed-plugin
@@ -224,27 +257,41 @@ quality), but the grading *mechanism* stays deterministic once the judge's struc
 verdict comes back — no mission anywhere asks the engine to trust an unstructured "looks
 good to me."
 
-**Still open:** authoring the rest of the campaign content — each arc below has one or
-two missions built; the paradigms noted as "not yet built" per arc are the ones with no
-mission yet.
+**Still open:** authoring the rest of the campaign content — each arc below notes what's
+built and what's planned but not yet built.
 
-The campaign is 4 arcs (see [Ranks and sections](#ranks-and-sections) for their
-narrative framing). Tier is orthogonal to arc — an arc can and does mix tiers:
+The campaign is 5 arcs, deliberately spreading "commands" and "extensibility" concepts
+across difficulty levels instead of teaching each primitive in one dump — an arc most
+players reach early (`tooling`'s `/permissions`) is simpler than one they reach later
+(shell-tool access on their own artifacts), even though both are nominally about tools.
+Tier is orthogonal to arc — an arc can and does mix tiers:
 
-1. **`fundamentals`** — built: `CLAUDE.md` memory (Tier 1, "First Contact"), built-in
-   commands via `/permissions` (Tier 2, "The Ledger"). Not yet built: reading a diff,
-   approving vs. denying a tool call, permission modes beyond `/permissions` itself.
-2. **`extensibility`** — built: skill invocation (Tier 2, "Say the Word"), skill
-   auto-invocation via description tuning (Tier 3, "The Silent Door"). Not yet built:
-   authoring a skill from scratch, skill chaining, `allowed-tools`/
-   `disable-model-invocation` scoping.
-3. **`guardianship`** — built: a mis-wired `PreToolUse` hook (Tier 3, "The Iron Ward").
-   Not yet built: permissions config (allow/deny rule syntax and precedence),
-   subagents (auto-delegation via description — same shape as skills, but for
-   `.claude/agents/`), MCP (connecting a server, invoking its tools).
-4. **`judgment`** — built: grading a written plan against a task brief (Tier 4, "The
-   Siege Plan"). Not yet built: a plugins capstone (bundling a skill + manifest,
-   verified by actually loading it with `--plugin-dir`).
+1. **`fundamentals`** — built: `CLAUDE.md` project memory (Tier 1, "First Contact"),
+   a nickname in the game's own per-character run root (Tier 1, "Your Own Name").
+   Considered closed at 2 missions by design — onboarding, not a deep arc.
+2. **basic commands** *(arc not yet built)* — `/model`, `/add-dir` (to verify whether
+   either persists to a file, which decides whether they're gradable at all or purely
+   informational), `/compact` and `/cost` (confirmed no file effect — informational
+   only, deliberately ungraded rather than built on an unreliable signal; see
+   [Player experience](#player-experience) for why transcript-parsing isn't the fix).
+3. **`extensibility`** — built: skill invocation (Tier 2, "Say the Word"), skill
+   auto-invocation via description tuning (Tier 3, "The Silent Door"). Planned
+   reorder once built out: invocation, then author a skill from scratch (Tier 2),
+   then extend that same skill until it passes a wider battery (Tier 3) — replacing
+   Silent Door's separate pre-fabricated skill with the player's own artifact.
+4. **subagents** *(arc not yet built)* — create one (no tools, no MCP — purely
+   procedural), invoke it explicitly (Tier 2), get Claude to delegate to it implicitly
+   off its own description (Tier 3, same shape as Silent Door but for `.claude/agents/`).
+   Confirmed live: a subagent granted the `Skill` tool can invoke a project skill by
+   name — planned as a capstone mission for this arc, invoking the skill built in
+   `extensibility`.
+5. **`tooling`** — built: `/permissions` (Tier 2, "The Ledger"). Not yet built:
+   extending the skill from `extensibility` and the subagent from `subagents` to
+   actually use Bash (read/update real information), teaching `allowed-tools` scoping
+   on artifacts the player already built rather than fresh ones.
+
+Dropped entirely (not deferred): an earlier `guardianship` arc (hooks) and `judgment`
+arc (rubric-graded writing) — no overlap with the arc set above.
 
 ## Mission file contract
 
@@ -253,11 +300,24 @@ Each mission is a directory: `missions/<arc>/<mission-id>/`.
 ```
 mission.json   metadata: id, title, arc, tier, order, hints[], artifact (Tier 4 only)
 goal.md        flavor text + walkthrough shown to the player
+debrief.md     plain-language recap of the actual Claude Code concept, shown on
+               completion — no in-character/fantasy language, see below
 setup.js       (optional) seeds the sandbox: files, hook config, locked resources
-check.js       Tier 1/2: deterministic check against sandbox state / hook log
+check.js       Tier 1/2: deterministic check against sandbox state / hook log.
+               Signature is check(sandboxDir, { runRoot }) — runRoot is the
+               character's persistent directory (see run-root below); almost
+               every mission ignores it and checks sandboxDir as normal
 tests.json     Tier 3 only: held-out prompt battery + expected-outcome checks
 rubric.json    Tier 4 only: judged criteria (id + description) + passThreshold
 ```
+
+`debrief.md` is the one piece of player-facing mission content that's deliberately
+*not* in-character — the game master relays it verbatim in a plainly separate block
+(see `skills/claude-quest/SKILL.md`'s `check` handling) so what was actually learned
+stays legible independent of the fantasy framing. `check` prints it (from
+`mission.debrief`, loaded by `missionLoader.js`) as part of its own output on
+`MISSION_STATUS: complete`, the same "relay real engine output, never invent it"
+discipline every other piece of mission content follows.
 
 `missions/ranks.json` sits alongside the arc directories, not inside any one mission —
 see [Ranks and sections](#ranks-and-sections).

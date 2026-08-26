@@ -1,9 +1,9 @@
 {
   "id": "permissions-rack",
   "title": "The Ledger",
-  "arc": "fundamentals",
+  "arc": "tooling",
   "tier": 2,
-  "order": 2,
+  "order": 1,
   "hints": [
     "There's a built-in command for managing what Claude Code is allowed to do without asking — it starts with a slash.",
     "/permissions lets you add a standing rule so Claude Code stops asking about a specific command.",

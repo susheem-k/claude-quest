@@ -26,8 +26,21 @@ export function runTestBattery(mission, { sandboxDir, hookLogPath }) {
   return tests.map((test) => {
     const before = readHookLog(hookLogPath).length;
 
+    // --permission-mode bypassPermissions: without it, a battery prompt spawned
+    // against a genuinely fresh sandbox (the same state every real player's
+    // sandbox is in) gets refused in several different ways depending on what
+    // the mission's fix asks Claude to do — an untrusted-workspace warning, a
+    // flat "output redirection blocked", or a silent "needs approval" that
+    // never resolves headless. Confirmed live: identical commands succeed
+    // immediately with this flag and fail every other way without it. Safe
+    // here specifically because this call only ever targets a disposable,
+    // engine-provisioned mission sandbox — never the player's real project —
+    // so there's nothing this flag is trading away.
     const { bin, prefixArgs } = resolveClaudeCommand();
-    spawnSync(bin, [...prefixArgs, '-p', test.prompt], { cwd: sandboxDir, encoding: 'utf8' });
+    spawnSync(bin, [...prefixArgs, '-p', test.prompt, '--permission-mode', 'bypassPermissions'], {
+      cwd: sandboxDir,
+      encoding: 'utf8',
+    });
 
     const after = readHookLog(hookLogPath);
     const newEvents = after.slice(before);

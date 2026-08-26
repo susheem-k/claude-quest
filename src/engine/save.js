@@ -21,6 +21,17 @@ function savePath(root, slug) {
   return join(root, SAVES_DIR, `${slug}.json`);
 }
 
+/**
+ * A character's "run root" — a persistent directory (sibling to its
+ * <slug>.json, under the same saves/ tree) that lasts the whole
+ * playthrough, unlike a mission sandbox which is disposable and shared
+ * across characters. Missions can seed a CLAUDE.md or other files here for
+ * the player to build on across the whole campaign, not just one mission.
+ */
+export function runRootFor(root, slug) {
+  return join(root, SAVES_DIR, slug);
+}
+
 export function listSaves(root) {
   const dir = join(root, SAVES_DIR);
   if (!existsSync(dir)) return [];
@@ -36,6 +47,7 @@ export function createSave(root, characterName, firstMissionKey) {
     throw new Error(`A save already exists for "${characterName}". Use "load ${slug}" instead.`);
   }
   mkdirSync(join(root, SAVES_DIR), { recursive: true });
+  mkdirSync(runRootFor(root, slug), { recursive: true });
   const save = {
     slug,
     name: characterName,
@@ -86,6 +98,7 @@ export function deleteSave(root, slug) {
   const path = savePath(root, slug);
   if (!existsSync(path)) return false;
   unlinkSync(path);
+  rmSync(runRootFor(root, slug), { recursive: true, force: true });
   if (getCurrentSlug(root) === slug) {
     const currentPath = join(root, CURRENT_PATH);
     if (existsSync(currentPath)) unlinkSync(currentPath);

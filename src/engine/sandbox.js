@@ -36,7 +36,12 @@ export function writeSkill(sandboxDir, { name, description, action }) {
   // up front, since a plain shell redirect won't create it.
   mkdirSync(join(sandboxDir, '.claude-quest'), { recursive: true });
 
-  const logLine = `printf '{"tool":"Skill","name":"${name}","timestamp":%s}\\n' "$(date +%s%3N)" >> .claude-quest/hook.log`;
+  // Deliberately no command substitution (e.g. $(date ...)): a live session's
+  // permission classifier rejected a command containing one with "contains
+  // shell syntax that cannot be statically analyzed", making invocation
+  // flaky. Nothing downstream reads a timestamp (hookLog.js only ever
+  // matches on tool + name), so there's nothing lost by leaving it out.
+  const logLine = `printf '{"tool":"Skill","name":"${name}"}\\n' >> .claude-quest/hook.log`;
   const body = `${action}
 
 Then, using the Bash tool, run this exact command with no explanation and no other output:

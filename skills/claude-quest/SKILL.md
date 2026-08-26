@@ -26,7 +26,7 @@ the command isn't found, you're running from a manual clone instead: use
 `node src/bin/claude-quest.js <command>` from the repo root.
 
 Commands: `saves`, `new "<name>"`, `load <slug>`, `status`, `goal`, `hint`, `check`,
-`sandbox-path`, `list`, `reset <slug>`, `reset --all`.
+`sandbox-path`, `run-root`, `list`, `reset <slug>`, `reset --all`.
 
 ## Starting a session
 
@@ -48,8 +48,13 @@ Commands: `saves`, `new "<name>"`, `load <slug>`, `status`, `goal`, `hint`, `che
 Map what the player says to engine commands; don't guess at outcomes yourself.
 
 - **"check" / "did I get it?" / similar** → run `check`.
-  - `MISSION_STATUS: complete` → celebrate. `check` also prints a `Next arc:` line —
-    if it differs from the arc you just finished, the player just earned that arc's
+  - `MISSION_STATUS: complete` → celebrate in-character first, briefly. Then, if
+    `check` printed a `DEBRIEF:` block, relay it verbatim in a separate, plainly
+    labeled block (e.g. under a "What you actually learned" heading) — plain
+    factual Claude Code terms, no fantasy language, no embellishment, and don't
+    paraphrase it into story voice. This is the one part of the response that's
+    deliberately not in-character. `check` also prints a `Next arc:` line — if it
+    differs from the arc you just finished, the player just earned that arc's
     rank: look it up in `missions/ranks.json` and announce the rank by name before
     narrating the next arc's section backstory (per "Starting a session" above) and
     its first goal. If the arc is unchanged, just narrate the next goal.
@@ -70,7 +75,10 @@ Map what the player says to engine commands; don't guess at outcomes yourself.
   - **Tier 1** (artifact): run `sandbox-path`, tell them which file to create/edit
     there and what it needs to accomplish (from `goal`). They create it — outside
     this conversation, by hand or in their own editor. Once they say they're done,
-    run `check`.
+    run `check`. Exception: if the mission's `goal` says to use `run-root` instead
+    (e.g. "Your Own Name"), that mission is about their persistent character
+    folder, not a disposable mission sandbox — run `run-root` instead of
+    `sandbox-path` for that one.
   - **Tier 2** (invocation): run `sandbox-path` and instruct them plainly: open a
     new terminal, `cd` into that path, run `claude` there themselves, do what the
     mission asks in that fresh session, then come back here and say "check". The
@@ -95,3 +103,39 @@ Light fantasy-RPG framing, matching whatever the mission's own flavor text
 establishes (towers, vaults, doors, torches). Keep it brief — a line or two of
 narration around the real engine output, not paragraphs. The player is here to
 learn the CLI, not read a novel.
+
+## Embellishment
+
+A few fixed ASCII banners for specific moments — reuse these exactly rather than
+improvising new ones each time, so the game has a consistent visual identity
+instead of a different banner every session:
+
+**Brand-new character, once, right after `new "<name>"` succeeds:**
+```
++--------------------------------------------+
+|             C L A U D E   Q U E S T         |
+|      a tower that teaches its own tools     |
++--------------------------------------------+
+```
+
+**Earning a rank** (an arc just completed — see "Running the loop" above), shown
+right before narrating the new arc's section backstory:
+```
+*  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *
+                RANK ACHIEVED
+*  *  *  *  *  *  *  *  *  *  *  *  *  *  *  *
+```
+followed by the actual rank name and section in your own narration, e.g. "You are
+now a **Warden** of the tower."
+
+**Campaign finished** (`CAMPAIGN_STATUS: finished`):
+```
++==============================================+
+|        THE TOWER HAS NOTHING LEFT             |
+|              TO TEACH YOU                      |
++==============================================+
+```
+
+Don't add banners anywhere else — a fresh mission, a hint, a routine `check` all
+stay plain per the brevity rule above. These three moments are the exceptions,
+not a new default.

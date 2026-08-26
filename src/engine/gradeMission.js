@@ -25,7 +25,7 @@ import { runJudge } from './judge.js';
  * non-deterministic, so it's reported with per-criterion reasons rather
  * than a bare pass/fail.
  */
-export async function gradeMission(root, mission) {
+export async function gradeMission(root, mission, { runRoot } = {}) {
   const sandboxDir = await provision(root, mission);
 
   if (mission.tier === 3) {
@@ -44,7 +44,11 @@ export async function gradeMission(root, mission) {
     throw new Error(`${mission.key} has no check.js and isn't Tier 3 — can't be graded.`);
   }
   const mod = await import(pathToFileURL(checkPath).href);
-  const { passed, message } = mod.check(sandboxDir);
+  // Second argument is optional context beyond the sandbox — currently just
+  // the character's run root (see save.js#runRootFor), for the rare mission
+  // that grades a persistent per-character file instead of the disposable
+  // mission sandbox. Every existing check.js ignores it.
+  const { passed, message } = mod.check(sandboxDir, { runRoot });
   return { passed, sandboxDir, message };
 }
 

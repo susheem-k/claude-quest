@@ -8,7 +8,7 @@ import { readFileSync, existsSync } from 'node:fs';
  * checkable side effect.
  *
  * Expected line shape:
- *   { "tool": "Skill", "name": "my-skill", "timestamp": 1234567890 }
+ *   { "tool": "Skill", "name": "my-skill" }
  */
 export function readHookLog(logPath) {
   if (!existsSync(logPath)) return [];
