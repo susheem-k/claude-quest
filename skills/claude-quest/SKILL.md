@@ -94,6 +94,11 @@ Map what the player says to engine commands; don't guess at outcomes yourself.
     in each other's conversation. Never substitute `claude --continue`: that means
     "most recent session in this directory", which is exactly how they'd end up in
     the wrong one.
+
+    Exception: if the mission's `goal` tells the player *not* to use `session`, run
+    only `sandbox-path` and leave it there. "Where You Left Off" is that mission —
+    it's about finding your own way back into a session, so handing over a command
+    that jumps straight to one would be handing over the answer.
   - **Tier 3** (mastery): run `sandbox-path`, point them at the file that needs
     fixing, and explain what's actually broken conceptually (e.g. a skill's
     description doesn't say what it's for) — not the fix itself. You can show them

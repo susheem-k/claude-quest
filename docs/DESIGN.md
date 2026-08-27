@@ -46,6 +46,16 @@ live against a real session that it never fires — skill invocation doesn't go 
 the standard tool-call hook pipeline the way Bash/Edit/Write do. Switched to the
 self-logging-skill approach above after that; see `src/engine/sandbox.js`.)
 
+That finding is about skill invocation specifically, not about hooks generally.
+`SessionStart` was later confirmed live to fire reliably — including under `claude -p`
+— and the `commands` arc's "Where You Left Off" is graded on it, the first mission in
+the campaign to be graded on a real Claude Code hook (see
+`missions/01-commands/where-you-left-off/setup.js`). Its payload's `source` field
+reports `startup` for a new session and `resume` for a re-entered one. What it does
+*not* distinguish is `--resume` from `--continue`: both report `resume`. So that
+mission grades which session the player landed in, never which flag they typed — which
+is the honest signal, and also the actual lesson.
+
 This also lets a mission test *how* something was invoked: an early mission can require
 explicit invocation (the player typing `/skill-name` themselves); a later mission can
 rely on the same logging step firing when Claude picks up the skill on its own, proving
@@ -290,7 +300,7 @@ non-deterministic (writing quality), but the grading *mechanism* stays determini
 once the judge's structured verdict comes back — no mission anywhere asks the engine to
 trust an unstructured "looks good to me."
 
-All 5 arcs below have at least one mission; 15 missions total. The campaign
+All 5 arcs below have at least one mission; 16 missions total. The campaign
 deliberately spreads "commands" and "extensibility" concepts across difficulty levels
 instead of teaching each primitive in one dump — an arc most players reach early
 (`tooling`'s `/permissions`) is simpler than one they reach later (shell-tool access on
@@ -305,7 +315,10 @@ arc — an arc can and does mix tiers:
    `/compact` and `/cost` (ungraded — confirmed no file effect at all; see
    `mission.json`'s `ungraded` field and "Why grading never parses session
    transcripts" above for why these stay informational rather than built on an
-   unstable signal). `/add-dir` not yet tried.
+   unstable signal); getting back into a specific past session rather than the most
+   recent one (Tier 2, "Where You Left Off" — the one mission graded on a real hook,
+   and the one that tells the player *not* to use `claude-quest session`, since it
+   would hand over the answer). `/add-dir` not yet tried.
 3. **`extensibility`** — skill invocation (Tier 2, "Say the Word"), authoring a skill
    from scratch (Tier 2, "First Craft"), then extending that same skill until it
    passes a held-out battery (Tier 3, "Second Craft") — replaced an earlier "Silent
@@ -330,7 +343,7 @@ arc — an arc can and does mix tiers:
 Dropped entirely (not deferred): an earlier `guardianship` arc (hooks) and `judgment`
 arc (rubric-graded writing) — no overlap with the arc set above.
 
-Nothing is currently "not yet built" — all 5 arcs, 15 missions, are complete. Further
+Nothing is currently "not yet built" — all 5 arcs, 16 missions, are complete. Further
 content (MCP, plugins, a genuinely new Tier 4 subject) would extend this, not fill a
 gap in it.
 
@@ -364,6 +377,9 @@ check.js       Tier 1/2: deterministic check against sandbox state / hook log.
                every mission ignores it and checks sandboxDir as normal
 tests.json     Tier 3 only: held-out prompt battery + expected-outcome checks
 rubric.json    Tier 4 only: judged criteria (id + description) + passThreshold
+<assets>       (optional) files setup.js copies into the sandbox — e.g. the hook
+               script "Where You Left Off" registers, kept as a real reviewable
+               file here rather than generated from a string at setup time
 ```
 
 `mission.json`'s `"ungraded": true` skips `check.js`/tier grading entirely and always
