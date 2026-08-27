@@ -46,6 +46,16 @@ live against a real session that it never fires — skill invocation doesn't go 
 the standard tool-call hook pipeline the way Bash/Edit/Write do. Switched to the
 self-logging-skill approach above after that; see `src/engine/sandbox.js`.)
 
+That finding is about skill invocation specifically, not about hooks generally.
+`SessionStart` was later confirmed live to fire reliably — including under `claude -p`
+— and the `commands` arc's "Where You Left Off" is graded on it, the first mission in
+the campaign to be graded on a real Claude Code hook (see
+`missions/01-commands/where-you-left-off/setup.js`). Its payload's `source` field
+reports `startup` for a new session and `resume` for a re-entered one. What it does
+*not* distinguish is `--resume` from `--continue`: both report `resume`. So that
+mission grades which session the player landed in, never which flag they typed — which
+is the honest signal, and also the actual lesson.
+
 This also lets a mission test *how* something was invoked: an early mission can require
 explicit invocation (the player typing `/skill-name` themselves); a later mission can
 rely on the same logging step firing when Claude picks up the skill on its own, proving
@@ -226,6 +236,11 @@ transcript's entry format is internal and can change on any release, which is ex
 the kind of foundation this project avoids building on. A command with no file effect
 stays informational-only rather than gradable on an unstable signal.
 
+That ban is narrower than it sounds, and **Sessions** below deliberately sits on the
+other side of it: it asks whether a named transcript *file exists* and never opens one.
+The unstable thing is the entry format, not the directory layout — the latter is what
+`claude --resume` itself depends on.
+
 **Save games:** multiple named characters can exist at once, each with independent
 progress, under `~/.claude-quest/saves/` — the player's home directory, so progress is
 stable no matter which project they're in or whether this is running as an installed
@@ -247,6 +262,31 @@ installed plugin's `bin/` directory to `PATH`, which is how `bin/claude-quest` �
 launcher delegating to `src/bin/claude-quest.js` — gets found as a bare `claude-quest`
 command.)
 
+**Sessions:** a Tier 2 mission needs the player working in their own `claude` session
+rooted at the mission sandbox, and stepping away used to mean losing that conversation —
+a bare `claude` starts over, and `claude --continue` means "most recent session in this
+directory," which is the wrong one as soon as two characters share a sandbox (sandboxes
+are keyed by mission, not by character — see `sandboxDirFor`). So each character gets a
+session id per mission, minted on first ask and stored in its save (`sessionIdFor` in
+`save.js`). `claude-quest session` prints `claude --session-id <id>` until that session
+has actually been recorded, and `claude --resume <id>` from then on — the two flags are
+contradictory as a pair, so this is a choice, not a merge.
+
+Choosing between them means asking whether the transcript exists yet, which means knowing
+where Claude puts it: `~/.claude/projects/<cwd, every non-alphanumeric replaced by a
+dash>/<session-id>.jsonl` (or `$CLAUDE_CONFIG_DIR` in place of `~/.claude`). That naming
+rule is reproduced in `src/engine/claudeSessions.js` straight from the algorithm in the
+`claude` binary, and checked against the 17 recorded cases in Quil's `TestEscapeCWD` —
+which is where the whole approach is borrowed from, having solved the same problem for
+restoring terminal panes. Approximating that rule is the known failure mode, not a
+hypothetical one: an earlier version there replaced only the obvious separators, missed
+`.`, and every path containing a dot silently resolved to a directory that wasn't there.
+
+Minting the id up front is what keeps this safe. The engine never has to *discover* which
+session the player opened — only probe for one it named itself — so being wrong about the
+directory surfaces as "not started yet," which prints a working start command, rather than
+as an attach to somebody else's conversation.
+
 **Hints:** each mission can declare a `hints` array in `mission.json` (see contract
 below), revealed one at a time on request and tracked per-save so hint usage persists
 across sessions.
@@ -260,7 +300,7 @@ non-deterministic (writing quality), but the grading *mechanism* stays determini
 once the judge's structured verdict comes back — no mission anywhere asks the engine to
 trust an unstructured "looks good to me."
 
-All 5 arcs below have at least one mission; 15 missions total. The campaign
+All 5 arcs below have at least one mission; 16 missions total. The campaign
 deliberately spreads "commands" and "extensibility" concepts across difficulty levels
 instead of teaching each primitive in one dump — an arc most players reach early
 (`tooling`'s `/permissions`) is simpler than one they reach later (shell-tool access on
@@ -275,7 +315,10 @@ arc — an arc can and does mix tiers:
    `/compact` and `/cost` (ungraded — confirmed no file effect at all; see
    `mission.json`'s `ungraded` field and "Why grading never parses session
    transcripts" above for why these stay informational rather than built on an
-   unstable signal). `/add-dir` not yet tried.
+   unstable signal); getting back into a specific past session rather than the most
+   recent one (Tier 2, "Where You Left Off" — the one mission graded on a real hook,
+   and the one that tells the player *not* to use `claude-quest session`, since it
+   would hand over the answer). `/add-dir` not yet tried.
 3. **`extensibility`** — skill invocation (Tier 2, "Say the Word"), authoring a skill
    from scratch (Tier 2, "First Craft"), then extending that same skill until it
    passes a held-out battery (Tier 3, "Second Craft") — replaced an earlier "Silent
@@ -300,7 +343,7 @@ arc — an arc can and does mix tiers:
 Dropped entirely (not deferred): an earlier `guardianship` arc (hooks) and `judgment`
 arc (rubric-graded writing) — no overlap with the arc set above.
 
-Nothing is currently "not yet built" — all 5 arcs, 15 missions, are complete. Further
+Nothing is currently "not yet built" — all 5 arcs, 16 missions, are complete. Further
 content (MCP, plugins, a genuinely new Tier 4 subject) would extend this, not fill a
 gap in it.
 
@@ -334,6 +377,9 @@ check.js       Tier 1/2: deterministic check against sandbox state / hook log.
                every mission ignores it and checks sandboxDir as normal
 tests.json     Tier 3 only: held-out prompt battery + expected-outcome checks
 rubric.json    Tier 4 only: judged criteria (id + description) + passThreshold
+<assets>       (optional) files setup.js copies into the sandbox — e.g. the hook
+               script "Where You Left Off" registers, kept as a real reviewable
+               file here rather than generated from a string at setup time
 ```
 
 `mission.json`'s `"ungraded": true` skips `check.js`/tier grading entirely and always

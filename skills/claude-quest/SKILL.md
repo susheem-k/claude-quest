@@ -26,7 +26,7 @@ the command isn't found, you're running from a manual clone instead: use
 `node src/bin/claude-quest.js <command>` from the repo root.
 
 Commands: `saves`, `new "<name>"`, `load <slug>`, `status`, `goal`, `hint`, `check`,
-`sandbox-path`, `run-root`, `list`, `reset <slug>`, `reset --all`.
+`sandbox-path`, `session`, `run-root`, `list`, `reset <slug>`, `reset --all`.
 
 ## Starting a session
 
@@ -79,12 +79,26 @@ Map what the player says to engine commands; don't guess at outcomes yourself.
     (e.g. "Your Own Name"), that mission is about their persistent character
     folder, not a disposable mission sandbox — run `run-root` instead of
     `sandbox-path` for that one.
-  - **Tier 2** (invocation): run `sandbox-path` and instruct them plainly: open a
-    new terminal, `cd` into that path, run `claude` there themselves, do what the
-    mission asks in that fresh session, then come back here and say "check". The
-    mission is specifically testing that *they* can trigger it, in a real session
-    rooted at that sandbox — this is the one tier where it has to be a `claude`
-    session specifically, not just any editor.
+  - **Tier 2** (invocation): run `sandbox-path` *and* `session`, then instruct them
+    plainly: open a new terminal, `cd` into the sandbox path, and run the exact
+    command `session` printed — not a bare `claude`. Do what the mission asks
+    there, then come back here and say "check". The mission is specifically testing
+    that *they* can trigger it, in a real session rooted at that sandbox — this is
+    the one tier where it has to be a `claude` session specifically, not just any
+    editor.
+
+    Relay the `session` command verbatim; don't rewrite it. It's how the player
+    gets *back into the same conversation* if they step away mid-mission — the
+    command starts the session the first time and resumes that same one every time
+    after, and it's per character, so two characters on the same mission never land
+    in each other's conversation. Never substitute `claude --continue`: that means
+    "most recent session in this directory", which is exactly how they'd end up in
+    the wrong one.
+
+    Exception: if the mission's `goal` tells the player *not* to use `session`, run
+    only `sandbox-path` and leave it there. "Where You Left Off" is that mission —
+    it's about finding your own way back into a session, so handing over a command
+    that jumps straight to one would be handing over the answer.
   - **Tier 3** (mastery): run `sandbox-path`, point them at the file that needs
     fixing, and explain what's actually broken conceptually (e.g. a skill's
     description doesn't say what it's for) — not the fix itself. You can show them

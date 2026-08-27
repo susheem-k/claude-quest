@@ -1,0 +1,12 @@
+{
+  "id": "where-you-left-off",
+  "title": "Where You Left Off",
+  "arc": "commands",
+  "tier": 2,
+  "order": 4,
+  "hints": [
+    "Claude Code keeps every session it has ever had in a directory — none of them are thrown away when you exit. There's a command for getting back into one.",
+    "`/resume` from inside a session, or `claude --resume` from the shell, both list what's there and let you pick. `--continue` doesn't ask — it takes the newest one.",
+    "From the sandbox, run `claude --resume`, choose the older of the two sessions, and say anything at all once you're back in."
+  ]
+}

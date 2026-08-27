@@ -9,6 +9,7 @@ import {
   writeSave,
   setCurrentSlug,
   getActiveSave,
+  sessionIdFor,
   deleteSave,
   resetAllSaves,
   runRootFor,
@@ -16,6 +17,7 @@ import {
 import { mkdirSync } from 'node:fs';
 import { gradeMission, provision } from '../engine/gradeMission.js';
 import { resetSandboxes } from '../engine/provision.js';
+import { transcriptExists } from '../engine/claudeSessions.js';
 
 // Save games and sandboxes live in the player's home directory, not wherever
 // `claude` happened to be launched from — stable regardless of which project
@@ -170,6 +172,24 @@ switch (command) {
     break;
   }
 
+  case 'session': {
+    const save = requireActiveSave();
+    if (!save) break;
+    const mission = currentMission(save);
+    if (!mission) break;
+    // Provisions for the same reason sandbox-path does — the command this
+    // prints is meant to be pasted into a shell that has already cd'd there.
+    const dir = await provision(root, mission);
+    const id = sessionIdFor(root, save, mission.key);
+    // --session-id mints the id; --resume attaches to it. They're contradictory
+    // as a pair, so this is a choice, not a merge — and the transcript existing
+    // is the only honest way to tell which one applies. Getting it backwards is
+    // a loud failure either way ("session id already in use" / "no conversation
+    // found"), never a silent attach to the wrong conversation.
+    console.log(transcriptExists(dir, id) ? `claude --resume ${id}` : `claude --session-id ${id}`);
+    break;
+  }
+
   case 'check': {
     const save = requireActiveSave();
     if (!save) break;
@@ -238,7 +258,7 @@ switch (command) {
 
   default: {
     console.log(`Unknown command: ${command ?? '(none)'}`);
-    console.log('Usage: claude-quest <list|new|saves|load|status|goal|hint|check|sandbox-path|run-root|reset>');
+    console.log('Usage: claude-quest <list|new|saves|load|status|goal|hint|check|sandbox-path|session|run-root|reset>');
     process.exitCode = 1;
   }
 }
