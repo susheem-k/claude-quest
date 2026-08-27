@@ -226,6 +226,11 @@ transcript's entry format is internal and can change on any release, which is ex
 the kind of foundation this project avoids building on. A command with no file effect
 stays informational-only rather than gradable on an unstable signal.
 
+That ban is narrower than it sounds, and **Sessions** below deliberately sits on the
+other side of it: it asks whether a named transcript *file exists* and never opens one.
+The unstable thing is the entry format, not the directory layout — the latter is what
+`claude --resume` itself depends on.
+
 **Save games:** multiple named characters can exist at once, each with independent
 progress, under `~/.claude-quest/saves/` — the player's home directory, so progress is
 stable no matter which project they're in or whether this is running as an installed
@@ -246,6 +251,31 @@ Claude-Code-specific assumption at all. What *is* real and verified: Claude Code
 installed plugin's `bin/` directory to `PATH`, which is how `bin/claude-quest` — a thin
 launcher delegating to `src/bin/claude-quest.js` — gets found as a bare `claude-quest`
 command.)
+
+**Sessions:** a Tier 2 mission needs the player working in their own `claude` session
+rooted at the mission sandbox, and stepping away used to mean losing that conversation —
+a bare `claude` starts over, and `claude --continue` means "most recent session in this
+directory," which is the wrong one as soon as two characters share a sandbox (sandboxes
+are keyed by mission, not by character — see `sandboxDirFor`). So each character gets a
+session id per mission, minted on first ask and stored in its save (`sessionIdFor` in
+`save.js`). `claude-quest session` prints `claude --session-id <id>` until that session
+has actually been recorded, and `claude --resume <id>` from then on — the two flags are
+contradictory as a pair, so this is a choice, not a merge.
+
+Choosing between them means asking whether the transcript exists yet, which means knowing
+where Claude puts it: `~/.claude/projects/<cwd, every non-alphanumeric replaced by a
+dash>/<session-id>.jsonl` (or `$CLAUDE_CONFIG_DIR` in place of `~/.claude`). That naming
+rule is reproduced in `src/engine/claudeSessions.js` straight from the algorithm in the
+`claude` binary, and checked against the 17 recorded cases in Quil's `TestEscapeCWD` —
+which is where the whole approach is borrowed from, having solved the same problem for
+restoring terminal panes. Approximating that rule is the known failure mode, not a
+hypothetical one: an earlier version there replaced only the obvious separators, missed
+`.`, and every path containing a dot silently resolved to a directory that wasn't there.
+
+Minting the id up front is what keeps this safe. The engine never has to *discover* which
+session the player opened — only probe for one it named itself — so being wrong about the
+directory surfaces as "not started yet," which prints a working start command, rather than
+as an attach to somebody else's conversation.
 
 **Hints:** each mission can declare a `hints` array in `mission.json` (see contract
 below), revealed one at a time on request and tracked per-save so hint usage persists

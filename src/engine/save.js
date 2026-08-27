@@ -1,5 +1,6 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync, readdirSync, rmSync, unlinkSync } from 'node:fs';
 import { join } from 'node:path';
+import { randomUUID } from 'node:crypto';
 
 /**
  * Save games. Multiple named characters can play the same campaign
@@ -55,6 +56,7 @@ export function createSave(root, characterName, firstMissionKey) {
     currentMissionKey: firstMissionKey,
     completed: [],
     hintsUsed: {},
+    sessions: {},
   };
   writeFileSync(savePath(root, slug), JSON.stringify(save, null, 2));
   setCurrentSlug(root, slug);
@@ -69,6 +71,32 @@ export function loadSave(root, slug) {
 
 export function writeSave(root, save) {
   writeFileSync(savePath(root, save.slug), JSON.stringify(save, null, 2));
+}
+
+/**
+ * The Claude Code session id this character uses for this mission, minted on
+ * first ask and persisted from then on. Handing out a stable id up front —
+ * rather than trying to discover afterwards which session the player opened —
+ * is what makes resuming reliable: we always know exactly which transcript to
+ * look for, and a miss is a plain "not started yet" rather than a wrong guess.
+ *
+ * Keyed by mission as well as character because a mission sandbox is shared
+ * across characters (see provision.js#sandboxDirFor), so two characters can be
+ * working in the same directory. Separate ids keep their conversations
+ * separate; this is also why the session command never falls back to
+ * `claude --continue`, which resolves to "most recent session in this
+ * directory" and would hand one character the other's conversation.
+ *
+ * Saves created before this existed have no `sessions` object; they get one on
+ * first use rather than needing a migration.
+ */
+export function sessionIdFor(root, save, missionKey) {
+  save.sessions ??= {};
+  if (!save.sessions[missionKey]) {
+    save.sessions[missionKey] = randomUUID();
+    writeSave(root, save);
+  }
+  return save.sessions[missionKey];
 }
 
 export function setCurrentSlug(root, slug) {
