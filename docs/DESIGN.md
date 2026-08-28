@@ -370,6 +370,37 @@ primitive, not a simplified stand-in of it; `@modelcontextprotocol/sdk` (plus `z
 its schema peer) is the officially blessed way to build a real server, live-verified
 working end to end.
 
+**Why a custom server instead of an existing public one** (`server-filesystem`,
+GitHub, Slack, ...) — considered and rejected:
+
+- **Grading needs to own the proof of invocation.** Every other mission in this
+  campaign proves invocation via a side effect it controls (a skill/subagent/hook
+  writing a specific log line) rather than trusting what Claude says happened. A
+  public server's tool handler is someone else's code; we can't make it write our
+  own proof. (A `PreToolUse` hook matched on the tool's full name — `mcp__<server
+  >__<tool>` — could in principle verify invocation without needing to own the
+  handler at all, sidestepping this specific objection. Not tested live, so treat
+  that as a reasoned alternative, not a confirmed one — but it wouldn't resolve the
+  next two points either, since those are about the server, not about how
+  invocation gets verified.)
+- **Anything a public server usefully does needs something external** — GitHub/
+  Slack need real accounts and tokens; even a no-auth one like `server-filesystem`
+  is normally run via `npx -y @modelcontextprotocol/server-filesystem`, meaning a
+  player's first run fetches it live from the npm registry — a real network
+  dependency at *play* time. `mcp-server.mjs` lives in this repo's own
+  `node_modules`; nothing is fetched when a player reaches this mission.
+  Real credentials would also be a first for this campaign — nothing else requires
+  an external account to finish a mission.
+- **A third party's tool names/schemas can drift under us across their own
+  versions.** Our own tool is exactly as stable as this repo's own commits.
+
+The player never manually starts the server process either way — that's just how
+Claude Code's stdio MCP transport already works, not something engineered here:
+`command`/`args` in `.mcp.json` get spawned automatically at session start,
+regardless of whether the config was player-written (Open a Channel) or pre-seeded
+by `setup.js` (Send Word). The engine doesn't spawn it either; `check.js` only ever
+reads what a real session already produced.
+
 Dropped entirely, at the time (not deferred): an earlier `guardianship` arc, hooks
 under a different name and shape, and a `judgment` arc (rubric-graded writing) — no
 overlap with the 5-arc set that existed then. Hooks came back later as its own arc,
