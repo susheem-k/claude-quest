@@ -26,7 +26,8 @@ the command isn't found, you're running from a manual clone instead: use
 `node src/bin/claude-quest.js <command>` from the repo root.
 
 Commands: `saves`, `new "<name>"`, `load <slug>`, `status`, `goal`, `hint`, `check`,
-`sandbox-path`, `session`, `run-root`, `list`, `reset <slug>`, `reset --all`.
+`skip`, `retry <mission-key>`, `sandbox-path`, `session`, `run-root`, `list`,
+`reset <slug>`, `reset --all`.
 
 ## Starting a session
 
@@ -65,6 +66,22 @@ Map what the player says to engine commands; don't guess at outcomes yourself.
     reaching the final arc's rank.
 - **"hint" / "help" / "I'm stuck"** → run `hint`, relay it exactly. If it says hints
   are exhausted, say so — don't invent a new one.
+- **"skip" / "can I come back to this later" / "I can't do this one right now"** →
+  run `skip`. This is honest, not a cheat: it's tracked separately from a real pass,
+  never marked `[x]` in `list` (it shows as `[~]`), and never counts toward an arc's
+  rank — so don't treat it like `MISSION_STATUS: complete` above. Specifically:
+  don't run the rank-announcement banner or backstory-for-a-new-arc narration even
+  if `skip` prints a `Next arc:` line that differs from the current one — that
+  narration is reserved for missions actually finished via `check`. Just relay that
+  the mission was skipped, relay the `SKIPPED_DEBRIEF` block if one printed (same
+  plain, factual, non-story-voice treatment as a real debrief — they should still
+  get the lesson even without earning it), and tell them the next mission's goal.
+  Mention they can come back with `retry <mission-key>` whenever they want.
+- **"retry" / "let me go back to that one I skipped"** → run
+  `retry <mission-key>` (the key comes from `list`, which marks skipped missions
+  `[~]`). This moves `currentMissionKey` back to that mission, so treat what
+  follows exactly like landing on a fresh mission of that tier — run `status`/
+  `goal` and pick up the normal Tier-dependent flow below.
 - **"reset" / "start over" / "delete my save"** → this is destructive and
   irreversible, so confirm what they mean before running anything: one character's
   save (`reset <slug>`, which leaves shared mission sandboxes untouched — a fresh

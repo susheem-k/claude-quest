@@ -55,6 +55,7 @@ export function createSave(root, characterName, firstMissionKey) {
     createdAt: Date.now(),
     currentMissionKey: firstMissionKey,
     completed: [],
+    skipped: [],
     hintsUsed: {},
     sessions: {},
   };

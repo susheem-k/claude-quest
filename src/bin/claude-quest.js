@@ -56,8 +56,12 @@ switch (command) {
   case 'list': {
     const save = getActiveSave(root);
     for (const m of missions) {
-      const done = save?.completed.includes(m.key) ? '[x]' : '[ ]';
-      console.log(`${done} [tier ${m.tier}] ${m.key} — ${m.title}`);
+      const marker = save?.completed.includes(m.key)
+        ? '[x]'
+        : save?.skipped?.includes(m.key)
+          ? '[~]'
+          : '[ ]';
+      console.log(`${marker} [tier ${m.tier}] ${m.key} — ${m.title}`);
     }
     break;
   }
@@ -89,7 +93,8 @@ switch (command) {
       break;
     }
     for (const s of saves) {
-      console.log(`${s.slug} — ${s.name} — ${s.completed.length}/${missions.length} missions — at ${s.currentMissionKey}`);
+      const skippedNote = s.skipped?.length ? `, ${s.skipped.length} skipped` : '';
+      console.log(`${s.slug} — ${s.name} — ${s.completed.length}/${missions.length} missions${skippedNote} — at ${s.currentMissionKey}`);
     }
     break;
   }
@@ -116,7 +121,7 @@ switch (command) {
     const mission = currentMission(save);
     if (!mission) break;
     console.log(`Character: ${save.name}`);
-    console.log(`Progress: ${save.completed.length}/${missions.length} missions complete`);
+    console.log(`Progress: ${save.completed.length}/${missions.length} complete, ${save.skipped?.length ?? 0} skipped`);
     console.log(`Current mission: [tier ${mission.tier}] ${mission.key} — ${mission.title}`);
     console.log(`Arc: ${mission.arc}`);
     break;
@@ -235,6 +240,58 @@ switch (command) {
     break;
   }
 
+  case 'skip': {
+    const save = requireActiveSave();
+    if (!save) break;
+    const mission = currentMission(save);
+    if (!mission) break;
+
+    // Tracked separately from `completed` — a skip is never a pass. Rank/arc
+    // progression (narrated by SKILL.md off `MISSION_STATUS: complete`) only
+    // ever looks at `completed`, so skipping the last mission of an arc never
+    // grants that arc's rank.
+    save.skipped = Array.from(new Set([...(save.skipped ?? []), mission.key]));
+    const next = missions[mission.sequence + 1];
+    console.log('MISSION_STATUS: skipped');
+    if (mission.debrief) console.log(`SKIPPED_DEBRIEF (what this mission would have taught you):\n${mission.debrief.trim()}`);
+    if (next) {
+      save.currentMissionKey = next.key;
+      writeSave(root, save);
+      console.log(`Next mission: [tier ${next.tier}] ${next.key} — ${next.title}`);
+      console.log(`Next arc: ${next.arc}`);
+    } else {
+      writeSave(root, save);
+      console.log('CAMPAIGN_STATUS: finished — no missions remain.');
+    }
+    console.log(`Use "retry ${mission.key}" any time to come back and earn it properly.`);
+    break;
+  }
+
+  case 'retry': {
+    const save = requireActiveSave();
+    if (!save) break;
+    const key = args[0];
+    if (!key) {
+      fail('Usage: claude-quest retry <mission-key>');
+      break;
+    }
+    const mission = findMission(missions, key);
+    if (!mission) {
+      fail(`No such mission "${key}". Run "claude-quest list" to see valid keys.`);
+      break;
+    }
+    const skipped = save.skipped ?? [];
+    if (!skipped.includes(key)) {
+      fail(`"${key}" wasn't skipped, so there's nothing to retry.`);
+      break;
+    }
+    save.skipped = skipped.filter((k) => k !== key);
+    save.currentMissionKey = key;
+    writeSave(root, save);
+    console.log(`Back to [tier ${mission.tier}] ${mission.key} — ${mission.title}`);
+    break;
+  }
+
   case 'reset': {
     const target = args[0];
     if (!target) {
@@ -258,7 +315,7 @@ switch (command) {
 
   default: {
     console.log(`Unknown command: ${command ?? '(none)'}`);
-    console.log('Usage: claude-quest <list|new|saves|load|status|goal|hint|check|sandbox-path|session|run-root|reset>');
+    console.log('Usage: claude-quest <list|new|saves|load|status|goal|hint|check|skip|retry|sandbox-path|session|run-root|reset>');
     process.exitCode = 1;
   }
 }

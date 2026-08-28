@@ -293,6 +293,36 @@ as an attach to somebody else's conversation.
 below), revealed one at a time on request and tracked per-save so hint usage persists
 across sessions.
 
+**Skipping:** Tier 2+ missions have a real-world dependency the engine can't force —
+the player has to go open a separate `claude` session by hand. Wrong machine, no
+second terminal handy, or just done for the evening, and the campaign used to have no
+answer: `currentMissionKey` only ever advances past a `check` that actually passed, so
+a player who couldn't or wouldn't do that right then was stuck on that mission for
+good. (Reported against a real playthrough stuck on `01-commands/where-you-left-off`,
+which needs three separate sessions started by hand — [issue
+#16](https://github.com/susheem-k/claude-quest/issues/16).)
+
+`skip` (`src/bin/claude-quest.js`) records the mission key in a save's `skipped` array
+— a sibling to `completed`, never a substitute for it — and advances
+`currentMissionKey` the same way a passing `check` does. Deliberately *not* implemented
+as faking a pass (e.g. pushing the key into `completed` instead), because that was
+exactly the hand-edit workaround the issue described, and it breaks three things at
+once: it records a pass that was never earned, the debrief never reaches the player
+(so they lose the lesson on top of not proving it), and rank/arc progression — which
+SKILL.md derives purely from a `check` completing an arc's last mission, never from
+`skip` — would silently inflate, since `list`'s completion count and any future
+rank logic can both keep trusting `completed` to mean "actually passed" without
+special-casing skips. `skip` prints the mission's debrief anyway (labeled
+`SKIPPED_DEBRIEF`, distinct from the real `DEBRIEF:` a pass prints) so the player
+still gets the lesson summary even without having earned it, and `list` marks a
+skipped mission `[~]`, distinct from both `[ ]` and `[x]`.
+
+`retry <mission-key>` reverses one: removes the key from `skipped` and points
+`currentMissionKey` back at it. Missions the player advanced past in the meantime stay
+recorded in `completed` — rewinding only affects what mission they're currently
+"at," the same field every other command already reads, so nothing downstream needed
+new logic to understand a mission being revisited out of order.
+
 ## Roadmap
 
 **Built:** Tiers 1–3 are exercised by real missions below; Tier 4's mechanism exists
