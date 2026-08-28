@@ -13,6 +13,8 @@ import {
   deleteSave,
   resetAllSaves,
   runRootFor,
+  skipMission,
+  retryMission,
 } from '../engine/save.js';
 import { mkdirSync } from 'node:fs';
 import { gradeMission, provision } from '../engine/gradeMission.js';
@@ -246,21 +248,16 @@ switch (command) {
     const mission = currentMission(save);
     if (!mission) break;
 
-    // Tracked separately from `completed` — a skip is never a pass. Rank/arc
-    // progression (narrated by SKILL.md off `MISSION_STATUS: complete`) only
-    // ever looks at `completed`, so skipping the last mission of an arc never
-    // grants that arc's rank.
-    save.skipped = Array.from(new Set([...(save.skipped ?? []), mission.key]));
-    const next = missions[mission.sequence + 1];
+    // Rank/arc progression (narrated by SKILL.md off `MISSION_STATUS:
+    // complete`) only ever looks at `completed`, so skipping the last
+    // mission of an arc never grants that arc's rank — see skipMission.
+    const next = skipMission(root, save, mission, missions);
     console.log('MISSION_STATUS: skipped');
     if (mission.debrief) console.log(`SKIPPED_DEBRIEF (what this mission would have taught you):\n${mission.debrief.trim()}`);
     if (next) {
-      save.currentMissionKey = next.key;
-      writeSave(root, save);
       console.log(`Next mission: [tier ${next.tier}] ${next.key} — ${next.title}`);
       console.log(`Next arc: ${next.arc}`);
     } else {
-      writeSave(root, save);
       console.log('CAMPAIGN_STATUS: finished — no missions remain.');
     }
     console.log(`Use "retry ${mission.key}" any time to come back and earn it properly.`);
@@ -280,14 +277,10 @@ switch (command) {
       fail(`No such mission "${key}". Run "claude-quest list" to see valid keys.`);
       break;
     }
-    const skipped = save.skipped ?? [];
-    if (!skipped.includes(key)) {
+    if (!retryMission(root, save, key)) {
       fail(`"${key}" wasn't skipped, so there's nothing to retry.`);
       break;
     }
-    save.skipped = skipped.filter((k) => k !== key);
-    save.currentMissionKey = key;
-    writeSave(root, save);
     console.log(`Back to [tier ${mission.tier}] ${mission.key} — ${mission.title}`);
     break;
   }

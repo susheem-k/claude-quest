@@ -100,6 +100,37 @@ export function sessionIdFor(root, save, missionKey) {
   return save.sessions[missionKey];
 }
 
+/**
+ * Marks `mission` skipped on `save` and advances `currentMissionKey` the same
+ * way a passing `check` does — but into `skipped`, a sibling of `completed`,
+ * never `completed` itself, so a skip can never be mistaken for an earned
+ * pass (rank/arc progression, and anything else that trusts `completed`,
+ * keeps meaning exactly what it always meant). Returns the next mission
+ * (or null at the end of the campaign) for the caller to relay.
+ */
+export function skipMission(root, save, mission, missions) {
+  save.skipped = Array.from(new Set([...(save.skipped ?? []), mission.key]));
+  const next = missions[mission.sequence + 1] ?? null;
+  if (next) save.currentMissionKey = next.key;
+  writeSave(root, save);
+  return next;
+}
+
+/**
+ * Reverses a skip: only succeeds on a mission that's actually in `skipped`.
+ * Missions completed in the meantime stay in `completed` untouched — this
+ * only moves what mission the save is currently "at". Returns true on
+ * success, false if `key` was never skipped.
+ */
+export function retryMission(root, save, key) {
+  const skipped = save.skipped ?? [];
+  if (!skipped.includes(key)) return false;
+  save.skipped = skipped.filter((k) => k !== key);
+  save.currentMissionKey = key;
+  writeSave(root, save);
+  return true;
+}
+
 export function setCurrentSlug(root, slug) {
   mkdirSync(root, { recursive: true });
   writeFileSync(join(root, CURRENT_PATH), JSON.stringify({ slug }, null, 2));
