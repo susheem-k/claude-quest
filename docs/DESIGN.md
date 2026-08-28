@@ -406,3 +406,42 @@ on request — see [Player experience](#player-experience).
 `static.sh`, `check.sh`, and `test.sh` — same responsibilities, expressed as Node modules
 instead of POSIX shell so the engine runs natively on Windows/macOS/Linux and can shell
 out to the real `claude` CLI directly.
+
+## Testing the engine itself
+
+There's a difference between a mission grading a *player* (its own `check.js`/
+`tests.json`, covered above) and something verifying that the *engine and campaign
+content* still work as new missions and engine changes land. Before this, that
+verification was entirely manual — a throwaway script against a temp sandbox, checked
+by eye, then discarded. Nothing caught a regression in an older mission unless someone
+happened to manually replay it.
+
+Two layers, both `node:test`, no new dependencies (matching how `runTestBattery`/
+`judge.js` already shell out to `claude` directly rather than depending on a client
+library):
+
+**`npm test`** (`test/unit/`) — fast, deterministic, zero API calls. Every mission's
+`check.js` is tested directly against a synthetic sandbox built with plain `mkdirSync`/
+`writeFileSync` (never through `setup.js` or a live session) — both the passing shape
+and the specific ways it should fail. Core engine modules (`missionLoader.js`,
+`save.js`, `provision.js`, `claudeSessions.js`, `hookLog.js`, `gradeMission.js`'s
+dispatch/`ungraded` logic) are covered the same way. One test is pinned to a
+live-verified regression case rather than a made-up example:
+`claudeSessions.test.js`'s dot-in-path case reproduces the exact directory name a real
+`claude -p` session produced during PR #15's review — the specific edge case an
+earlier, wrong implementation of the same algorithm missed.
+
+**`npm run test:live`** (`test/live/`) — slow, costs real tokens, spawns an actual
+`claude` process per test. Covers the mechanisms `check.js` alone can't prove: does a
+skill/subagent still actually fire (explicit and auto-invocation), does a held-out
+battery still pass against a correctly-worded description, does a subagent still
+compose with a skill, does the `SessionStart` hook still fire and still distinguish
+`startup` from `resume`. Each test covers the *fixed*, passing state for its mission —
+the broken-state failure mode was already established once, carefully, while building
+that mission (see the arc-by-arc notes above); the ongoing value of a live suite is
+confirming the mechanism still works against whatever `claude` version is currently
+installed, not re-relitigating each mission's design. Requires a working, already-authenticated `claude` on PATH — the same requirement
+every mission's own live grading already has — which is exactly why this never runs as
+part of default CI: it's for a maintainer to run before trusting something that
+touches live-invocation behavior, the same discipline this project already held
+itself to by hand before any of this existed.

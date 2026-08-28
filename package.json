@@ -9,6 +9,10 @@
   "engines": {
     "node": ">=18"
   },
+  "scripts": {
+    "test": "node --test \"test/unit/**/*.test.js\"",
+    "test:live": "node --test \"test/live/**/*.test.js\""
+  },
   "license": "MIT",
   "repository": {
     "type": "git",
