@@ -54,16 +54,27 @@ Map what the player says to engine commands; don't guess at outcomes yourself.
     labeled block (e.g. under a "What you actually learned" heading) — plain
     factual Claude Code terms, no fantasy language, no embellishment, and don't
     paraphrase it into story voice. This is the one part of the response that's
-    deliberately not in-character. `check` also prints a `Next arc:` line — if it
-    differs from the arc you just finished, the player just earned that arc's
-    rank: look it up in `missions/ranks.json` and announce the rank by name before
-    narrating the next arc's section backstory (per "Starting a session" above) and
-    its first goal. If the arc is unchanged, just narrate the next goal.
+    deliberately not in-character. `check` prints a `Next arc:` line whenever it
+    advances at all — use that only to narrate the next arc's section backstory
+    (per "Starting a session" above) when it differs from the arc you were just
+    in. The rank itself is a separate, stricter signal: only announce a rank
+    (look it up in `missions/ranks.json`) when this `check` also printed an
+    `ARC_COMPLETE: <arc>` line, and announce that named arc's rank specifically
+    — not whatever arc you're heading into next. `Next arc:` differing is not
+    enough on its own (a `retry` can advance across an arc boundary while an
+    earlier mission in that same arc is still only skipped, never actually
+    earning that arc's rank), so never infer a rank from it without
+    `ARC_COMPLETE` alongside it. If neither backstory nor rank applies, just
+    narrate the next goal.
   - `MISSION_STATUS: incomplete` → relay the actual reason from the output (the
     check message, or which test prompts failed for a Tier 3 mission), don't just
     say "try again."
-  - `CAMPAIGN_STATUS: finished` → the campaign is complete, congratulate them on
-    reaching the final arc's rank.
+  - `CAMPAIGN_STATUS: finished` → the main line is complete. If `check` also
+    printed a `NOTE:` line about missions still only skipped, say so plainly
+    instead of congratulating them on the final arc's rank outright — that rank
+    still needs `ARC_COMPLETE` for the final arc on some earlier `check`, same
+    as any other. If no such note appeared, congratulate them on reaching the
+    final arc's rank.
 - **"hint" / "help" / "I'm stuck"** → run `hint`, relay it exactly. If it says hints
   are exhausted, say so — don't invent a new one.
 - **"skip" / "can I come back to this later" / "I can't do this one right now"** →

@@ -101,16 +101,61 @@ export function sessionIdFor(root, save, missionKey) {
 }
 
 /**
+ * The first mission after `afterSequence` that isn't already dealt with —
+ * completed for real, or parked via skip. Plain forward advance (nothing
+ * skipped, no retry ever used) always finds `missions[afterSequence + 1]`
+ * immediately, same as before; the scan only actually does work once
+ * `retry` has moved `currentMissionKey` backwards past missions the player
+ * already resolved, and it's what lets finishing a retried mission land
+ * back at the real frontier instead of re-walking everything after it one
+ * mission at a time. Returns null once nothing unresolved remains.
+ */
+function firstUnresolved(save, missions, afterSequence) {
+  const skipped = save.skipped ?? [];
+  for (let i = afterSequence + 1; i < missions.length; i++) {
+    const m = missions[i];
+    if (!save.completed.includes(m.key) && !skipped.includes(m.key)) return m;
+  }
+  return null;
+}
+
+/**
+ * True once every mission in `arc` is in `completed` — never satisfied by a
+ * mission that's merely `skipped`. This is the one true source for "has this
+ * arc's rank actually been earned," deliberately not inferred from whether
+ * `currentMissionKey` happens to have moved to a different arc: after a
+ * retry, finishing one mission can fast-forward `currentMissionKey` across
+ * an arc boundary (via firstUnresolved above) while another mission earlier
+ * in that same arc is still only skipped, not completed — an arc-changed
+ * heuristic would call that a rank, and it wouldn't be earned yet.
+ */
+export function arcCompleted(save, missions, arc) {
+  return missions.filter((m) => m.arc === arc).every((m) => save.completed.includes(m.key));
+}
+
+/**
+ * Marks `mission` completed and advances to the real frontier (see
+ * firstUnresolved). Returns the next mission, or null once nothing
+ * unresolved remains.
+ */
+export function completeMission(root, save, mission, missions) {
+  save.completed = Array.from(new Set([...save.completed, mission.key]));
+  const next = firstUnresolved(save, missions, mission.sequence);
+  if (next) save.currentMissionKey = next.key;
+  writeSave(root, save);
+  return next;
+}
+
+/**
  * Marks `mission` skipped on `save` and advances `currentMissionKey` the same
- * way a passing `check` does — but into `skipped`, a sibling of `completed`,
+ * way completeMission does — but into `skipped`, a sibling of `completed`,
  * never `completed` itself, so a skip can never be mistaken for an earned
- * pass (rank/arc progression, and anything else that trusts `completed`,
- * keeps meaning exactly what it always meant). Returns the next mission
- * (or null at the end of the campaign) for the caller to relay.
+ * pass. Returns the next mission (or null once nothing unresolved remains)
+ * for the caller to relay.
  */
 export function skipMission(root, save, mission, missions) {
   save.skipped = Array.from(new Set([...(save.skipped ?? []), mission.key]));
-  const next = missions[mission.sequence + 1] ?? null;
+  const next = firstUnresolved(save, missions, mission.sequence);
   if (next) save.currentMissionKey = next.key;
   writeSave(root, save);
   return next;

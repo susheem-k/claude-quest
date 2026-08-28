@@ -15,6 +15,8 @@ import {
   runRootFor,
   skipMission,
   retryMission,
+  completeMission,
+  arcCompleted,
 } from '../engine/save.js';
 import { mkdirSync } from 'node:fs';
 import { gradeMission, provision } from '../engine/gradeMission.js';
@@ -224,20 +226,26 @@ switch (command) {
       break;
     }
 
-    save.completed = Array.from(new Set([...save.completed, mission.key]));
-    const next = missions[mission.sequence + 1];
+    const wasArcComplete = arcCompleted(save, missions, mission.arc);
+    const next = completeMission(root, save, mission, missions);
+    console.log('MISSION_STATUS: complete');
+    if (mission.debrief) console.log(`DEBRIEF:\n${mission.debrief.trim()}`);
+    // Printed only on the exact check that finishes the last outstanding
+    // mission of this arc — never inferred from the next mission's arc
+    // differing, which a retry can trigger without the arc actually being
+    // done (see arcCompleted's doc comment).
+    if (!wasArcComplete && arcCompleted(save, missions, mission.arc)) {
+      console.log(`ARC_COMPLETE: ${mission.arc}`);
+    }
     if (next) {
-      save.currentMissionKey = next.key;
-      writeSave(root, save);
-      console.log('MISSION_STATUS: complete');
-      if (mission.debrief) console.log(`DEBRIEF:\n${mission.debrief.trim()}`);
       console.log(`Next mission: [tier ${next.tier}] ${next.key} — ${next.title}`);
       console.log(`Next arc: ${next.arc}`);
     } else {
-      writeSave(root, save);
-      console.log('MISSION_STATUS: complete');
-      if (mission.debrief) console.log(`DEBRIEF:\n${mission.debrief.trim()}`);
       console.log('CAMPAIGN_STATUS: finished — no missions remain.');
+      const stillSkipped = save.skipped?.length ?? 0;
+      if (stillSkipped > 0) {
+        console.log(`NOTE: ${stillSkipped} mission(s) still only skipped, not completed — "retry <mission-key>" any time.`);
+      }
     }
     break;
   }

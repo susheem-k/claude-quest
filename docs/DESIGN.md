@@ -323,6 +323,33 @@ recorded in `completed` — rewinding only affects what mission they're currentl
 "at," the same field every other command already reads, so nothing downstream needed
 new logic to understand a mission being revisited out of order.
 
+That rewind creates a real question, though: once the retried mission is finished (or
+skipped again), where does `currentMissionKey` land? Naively, `missions[sequence + 1]`
+— the same math every advance always used — lands back on whatever the player already
+did in between, since a retry can jump backwards across missions that were completed
+(or skipped) after the retried one originally moved the frontier forward. `save.js`'s
+`firstUnresolved` fixes this: it scans forward from the just-finished mission for the
+first one that's in neither `completed` nor `skipped`, so `completeMission`/`skipMission`
+both snap straight back to the real frontier instead of re-walking everything after it
+one mission at a time. In the ordinary case — nothing ever skipped, `retry` never used
+— this is a no-op: the first unresolved mission is always just the next one in sequence.
+
+That fix exposed a second, subtler bug in the rank-announcement heuristic itself.
+SKILL.md used to announce a rank whenever `check`'s `Next arc:` differed from the arc
+just finished — reasonable when `currentMissionKey` only ever moved forward one
+mission at a time, but wrong once `firstUnresolved` can cross an arc boundary in one
+jump: finishing a retried mission can land on a mission in the *next* arc while an
+earlier mission in the *current* arc is still only `skipped`, never actually completed
+— exactly the false rank grant issue #16 warned about, just reached by a different
+path than the one it originally described. `arcCompleted(save, missions, arc)` closes
+it: true only when every mission tagged with that arc is in `completed`, never
+satisfied by a mission that's merely parked in `skipped`. `check` now prints a
+deterministic `ARC_COMPLETE: <arc>` line only on the exact call where `arcCompleted`
+flips from false to true, and SKILL.md's rank announcement is gated on that line
+appearing, not on `Next arc:` differing. `Next arc:` still exists and still drives the
+(rank-independent) new-section backstory narration — the two signals now answer two
+different questions instead of one signal standing in for both.
+
 ## Roadmap
 
 **Built:** Tiers 1–3 are exercised by real missions below; Tier 4's mechanism exists
