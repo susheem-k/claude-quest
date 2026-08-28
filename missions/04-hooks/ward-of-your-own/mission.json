@@ -1,0 +1,12 @@
+{
+  "id": "ward-of-your-own",
+  "title": "Ward of Your Own",
+  "arc": "hooks",
+  "tier": 2,
+  "order": 1,
+  "hints": [
+    "A hook is two parts: a command registered in .claude/settings.json, and whatever script that command actually runs. Neither exists here yet.",
+    "Register it under hooks.PreToolUse, matched on Bash, running `node .claude/hooks/guard.js` (or wherever you put it — the path just has to match).",
+    "The script reads JSON from stdin. If tool_input.command mentions diary.txt, append {\"tool\":\"Hook\",\"name\":\"ward-of-your-own\"} to .claude-quest/hook.log and exit with code 2 to block it. Otherwise exit 0."
+  ]
+}

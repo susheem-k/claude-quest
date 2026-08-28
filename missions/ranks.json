@@ -19,9 +19,19 @@
     "rank": "Marshal",
     "backstory": "Past the forge, the tower keeps a cloister -- cells built for solitary work, each one sealed off from everything else. Whoever works inside sees nothing of what called them there, and reports back only a summary when they're done. You can call on one by name, or leave word precise enough at the door that it's summoned without being asked directly."
   },
+  "hooks": {
+    "section": "The Watch",
+    "rank": "Sentinel",
+    "backstory": "Past the cloister, the tower keeps a watch -- plain commands posted at specific doors, each one triggered the instant its door is crossed, no matter who's crossing or why. Nothing here asks permission or waits for judgment; it just fires, every time, exactly as written. Getting one wrong doesn't mean it judges badly -- it means it doesn't fire at all."
+  },
   "tooling": {
     "section": "The Armory",
     "rank": "Warden",
-    "backstory": "Past the cloister is the armory, where tools aren't handed out freely -- you have to be trusted with them first. A standing order, granted once, means the armorer stops stepping in front of you every time you reach for the same one. Some things you already made are welcome here too, to have their reach widened or narrowed on purpose -- nothing carries more than it's been trusted to."
+    "backstory": "Past the watch is the armory, where tools aren't handed out freely -- you have to be trusted with them first. A standing order, granted once, means the armorer stops stepping in front of you every time you reach for the same one. Some things you already made are welcome here too, to have their reach widened or narrowed on purpose -- nothing carries more than it's been trusted to."
+  },
+  "mcp": {
+    "section": "The Signal Tower",
+    "rank": "Envoy",
+    "backstory": "Past the armory, a narrow stair climbs to a signal tower at the very top -- the only place in the whole structure that talks to anything outside it. What answers back isn't part of the tower at all: a separate voice, running entirely on its own, that just happens to understand the same requests everything inside already does."
   }
 }

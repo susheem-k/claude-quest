@@ -1,0 +1,12 @@
+{
+  "id": "send-word",
+  "title": "Send Word",
+  "arc": "mcp",
+  "tier": 2,
+  "order": 2,
+  "hints": [
+    "The beacon is already connected in this sandbox — check /mcp in a session here if you want to confirm it.",
+    "Its tool is called send_word. Just ask Claude to send a message through the beacon.",
+    "Open a real claude session inside this mission's sandbox directory and ask for it there."
+  ]
+}

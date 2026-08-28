@@ -17,5 +17,9 @@
   "repository": {
     "type": "git",
     "url": "https://github.com/susheem-k/claude-quest.git"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.30.0",
+    "zod": "^4.4.3"
   }
 }

@@ -11,7 +11,7 @@ describe('missionLoader', () => {
     // Pinned to the real count on purpose: a mission silently failing to
     // load (bad JSON, wrong directory shape) should fail this test, not
     // pass quietly with one fewer mission than expected.
-    assert.equal(missions.length, 16);
+    assert.equal(missions.length, 20);
   });
 
   test('campaign order matches directory order (arc dirs, then mission.json order within an arc)', () => {
@@ -30,10 +30,20 @@ describe('missionLoader', () => {
       '03-subagents/call-on-them',
       '03-subagents/their-own-judgment',
       '03-subagents/borrowed-craft',
+      '04-hooks/ward-of-your-own',
+      '04-hooks/iron-ward',
       '04-tooling/permissions-rack',
       '04-tooling/give-the-craft-hands',
       '04-tooling/widen-the-herald',
+      '05-mcp/open-a-channel',
+      '05-mcp/send-word',
     ]);
+  });
+
+  test('04-hooks sorts before 04-tooling (inserted without renumbering anything)', () => {
+    const hooksIndex = missions.findIndex((m) => m.arc === 'hooks');
+    const toolingIndex = missions.findIndex((m) => m.arc === 'tooling');
+    assert.ok(hooksIndex < toolingIndex);
   });
 
   test('every mission has the required manifest fields', () => {

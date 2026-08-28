@@ -1,0 +1,12 @@
+{
+  "id": "open-a-channel",
+  "title": "Open a Channel",
+  "arc": "mcp",
+  "tier": 1,
+  "order": 1,
+  "hints": [
+    "The file goes at the sandbox root: .mcp.json, with a top-level mcpServers object.",
+    "This server's exact path is in mcp-server-path.txt, in this sandbox. The command is node, and that path is the first argument.",
+    "Shape: { \"mcpServers\": { \"beacon\": { \"type\": \"stdio\", \"command\": \"node\", \"args\": [\"<the path from mcp-server-path.txt>\"] } } }"
+  ]
+}

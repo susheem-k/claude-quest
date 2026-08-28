@@ -190,7 +190,9 @@ else. `ranks.json` only has entries for arcs that actually have a mission built;
 | `commands` | The Console | Adept | Built-in commands, graded where they leave a real file effect |
 | `extensibility` | The Forge | Artisan | Skills (invocation, authoring, auto-invoke tuning) |
 | `subagents` | The Cloister | Marshal | Subagents (authoring, explicit + implicit invocation, invoking a skill) |
-| `tooling` | The Armory | Warden | Built-in commands with a real config effect (`/permissions`) |
+| `hooks` | The Watch | Sentinel | Hooks (authoring a `PreToolUse` guard, fixing a broken matcher) |
+| `tooling` | The Armory | Warden | Built-in commands with a real config effect (`/permissions`), extending a skill/subagent to do real work |
+| `mcp` | The Signal Tower | Envoy | MCP (connecting a real stdio server, invoking its tool) |
 
 ## Player experience
 
@@ -300,12 +302,15 @@ non-deterministic (writing quality), but the grading *mechanism* stays determini
 once the judge's structured verdict comes back — no mission anywhere asks the engine to
 trust an unstructured "looks good to me."
 
-All 5 arcs below have at least one mission; 16 missions total. The campaign
+All 7 arcs below have at least one mission; 20 missions total. The campaign
 deliberately spreads "commands" and "extensibility" concepts across difficulty levels
 instead of teaching each primitive in one dump — an arc most players reach early
 (`tooling`'s `/permissions`) is simpler than one they reach later (shell-tool access on
 their own artifacts), even though both are nominally about tools. Tier is orthogonal to
-arc — an arc can and does mix tiers:
+arc — an arc can and does mix tiers. `hooks` and `mcp` were added after the first 5,
+slotted in by directory name (`04-hooks` sorts before `04-tooling`; `05-mcp` sorts
+after) rather than by renumbering anything already there — every mission built before
+them keeps its exact arc, key, and order:
 
 1. **`fundamentals`** — `CLAUDE.md` project memory (Tier 1, "First Contact"), a
    nickname in the game's own per-character run root (Tier 1, "Your Own Name").
@@ -330,7 +335,13 @@ arc — an arc can and does mix tiers:
    "Second Craft" but for `.claude/agents/`); a capstone where a subagent granted the
    `Skill` tool invokes the skill from `extensibility` (Tier 2, "Borrowed Craft") —
    confirmed live that this composition actually works.
-5. **`tooling`** — `/permissions` (Tier 2, "The Ledger"); extending the well-wisher
+5. **`hooks`** — author a `PreToolUse` guard from scratch, blocking Bash reads of a
+   deliberately boring file (Tier 2, "Ward of Your Own"); fix a pre-seeded hook whose
+   `matcher` targets the wrong tool so it silently never fires, correct guard logic
+   or not (Tier 3, "The Iron Ward", same shape as "Second Craft"/"Their Own Judgment"
+   but the failure mode is a wiring bug, not an ambiguity — no judgment call
+   involved anywhere).
+6. **`tooling`** — `/permissions` (Tier 2, "The Ledger"); extending the well-wisher
    skill from `extensibility` to actually read/update a file via Bash, scoped down
    with `allowed-tools` on purpose (Tier 2, "Give the Craft Hands"); extending the
    herald subagent from `subagents` the same way, but from the opposite direction —
@@ -339,13 +350,37 @@ arc — an arc can and does mix tiers:
    each other on purpose: a skill starts with every tool the session has and gets
    scoped down; a subagent starts with only what its `tools` list says and gets
    widened.
+7. **`mcp`** — connect a real stdio MCP server via `.mcp.json` (Tier 1, "Open a
+   Channel" — the server itself lives permanently in the mission's own directory in
+   this repo rather than being copied into the sandbox, since Node resolves
+   `node_modules` relative to a script's real disk location, not the process cwd,
+   which is what lets it `import` `@modelcontextprotocol/sdk` regardless of where
+   the sandbox actually is); invoke its one tool (Tier 2, "Send Word" — graded via
+   the same hook-log convention as everywhere else, except this time the *tool's own
+   handler* writes the log line directly, not Claude being instructed to run a Bash
+   command — more deterministic by construction than every earlier self-logging
+   mission, since there's no step where a live session has to choose to comply).
 
-Dropped entirely (not deferred): an earlier `guardianship` arc (hooks) and `judgment`
-arc (rubric-graded writing) — no overlap with the arc set above.
+**`mcp` is the project's first real dependency.** Everything before it — the engine,
+the test suite — deliberately stayed dependency-free, shelling out to the real
+`claude` CLI directly instead of depending on a client library. Hand-rolling the MCP
+wire protocol correctly (capability negotiation, JSON-RPC framing) to preserve that
+streak was judged the wrong tradeoff for a project that's supposed to teach the real
+primitive, not a simplified stand-in of it; `@modelcontextprotocol/sdk` (plus `zod`,
+its schema peer) is the officially blessed way to build a real server, live-verified
+working end to end.
 
-Nothing is currently "not yet built" — all 5 arcs, 16 missions, are complete. Further
-content (MCP, plugins, a genuinely new Tier 4 subject) would extend this, not fill a
-gap in it.
+Dropped entirely, at the time (not deferred): an earlier `guardianship` arc, hooks
+under a different name and shape, and a `judgment` arc (rubric-graded writing) — no
+overlap with the 5-arc set that existed then. Hooks came back later as its own arc,
+rebuilt from scratch with lessons the first attempt didn't have yet (the "guard a
+boring file, not a destructive/secret-sounding one" fix, `bypassPermissions`) — not a
+revival of the old mission, a new one built on the same underlying idea. `judgment`
+has not come back; Tier 4 still has no mission using it.
+
+Nothing is currently "not yet built" — all 7 arcs, 20 missions, are complete. Further
+content (plugins, a genuinely new Tier 4 subject) would extend this, not fill a gap
+in it.
 
 **A verification gap, stated plainly:** every Tier 2/3 mechanism above was confirmed
 live except `/model`. Skills and subagents can be triggered headlessly via natural
@@ -381,6 +416,13 @@ rubric.json    Tier 4 only: judged criteria (id + description) + passThreshold
                script "Where You Left Off" registers, kept as a real reviewable
                file here rather than generated from a string at setup time
 ```
+
+An `mcp-server.mjs` is a different case from the assets above — it stays put in the
+mission's own directory and is never copied into the sandbox. `.mcp.json` references
+it by absolute path instead, which is what lets it `import` `@modelcontextprotocol/sdk`
+from this repo's own `node_modules` (Node resolves `node_modules` relative to a
+script's real disk location, not the process cwd) regardless of where any given
+sandbox happens to live. See the `mcp` arc in the Roadmap below.
 
 `mission.json`'s `"ungraded": true` skips `check.js`/tier grading entirely and always
 passes (see `gradeMission.js`) — for the small number of missions teaching a real
@@ -440,8 +482,28 @@ compose with a skill, does the `SessionStart` hook still fire and still distingu
 the broken-state failure mode was already established once, carefully, while building
 that mission (see the arc-by-arc notes above); the ongoing value of a live suite is
 confirming the mechanism still works against whatever `claude` version is currently
-installed, not re-relitigating each mission's design. Requires a working, already-authenticated `claude` on PATH — the same requirement
-every mission's own live grading already has — which is exactly why this never runs as
-part of default CI: it's for a maintainer to run before trusting something that
-touches live-invocation behavior, the same discipline this project already held
-itself to by hand before any of this existed.
+installed, not re-relitigating each mission's design. Requires a working,
+already-authenticated `claude` on PATH — the same requirement every mission's own
+live grading already has — which is exactly why this never runs as part of default
+CI: it's for a maintainer to run before trusting something that touches
+live-invocation behavior, the same discipline this project already held itself to by
+hand before any of this existed.
+
+**A real bug this suite caught in itself, not in the missions:** `withLiveSandbox`'s
+`try { return fn(dir); } finally { rmSync(dir, ...) }` doesn't `await fn(dir)` before
+cleanup runs — a bare `return` of a still-pending promise lets `finally` fire
+immediately, synchronously, deleting the sandbox while `provision()`'s async
+`setup()` call is still in flight. Every mission whose `setup.js` happens to call
+`mkdirSync(..., { recursive: true })` before its first write self-healed from this
+completely silently (the recursive mkdir recreates the deleted directory as a side
+effect); the two hooks/mcp missions built after this suite existed were the first
+whose `setup.js` goes straight to `writeFileSync` with nothing to recreate the
+directory, and they failed with a bare `ENOENT` that had nothing to do with either
+mission's own logic. Fixed with `return await fn(dir)`. Worth recording because the
+first hypothesis — file-level test-runner concurrency racing on Windows — was wrong
+and cost real time chasing before the actual cause turned up. `--test-concurrency=1`
+was added while chasing that wrong hypothesis, then removed once the real fix
+(confirmed clean, twice, under `--test-concurrency=1`) turned out to be a per-call
+correctness bug with nothing to do with concurrency — if a future run turns up a
+genuine concurrency issue after all, that's new evidence, not something this note
+already ruled out.

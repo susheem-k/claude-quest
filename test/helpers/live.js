@@ -29,10 +29,23 @@ export function claudeP(cwd, prompt, extraArgs = []) {
   }
 }
 
-export function withLiveSandbox(fn) {
+/**
+ * Deliberately `async` with `return await fn(dir)`, not `return fn(dir)`: a
+ * bare `return fn(dir)` returns the *pending* promise from an async `fn`
+ * without waiting for it, so a plain (non-async) `try/finally` around it
+ * runs `finally`'s cleanup immediately, synchronously, before `fn` actually
+ * finishes — deleting the sandbox out from under whatever `fn` is still
+ * doing. Confirmed live: every mission whose setup.js happens to call
+ * mkdirSync(..., { recursive: true }) before its first write silently
+ * self-healed from this (the recursive mkdir recreates the deleted
+ * directory as a side effect), which is why this went unnoticed until a
+ * setup.js that goes straight to writeFileSync with no mkdirSync first hit
+ * it as a real ENOENT.
+ */
+export async function withLiveSandbox(fn) {
   const dir = mkdtempSync(join(tmpdir(), 'claude-quest-live-'));
   try {
-    return fn(dir);
+    return await fn(dir);
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }
